@@ -1,4 +1,4 @@
-module DemoParser (
+module DarkPlaces.Demo (
     getDemoMessage,
     getDemoMessages,
     getLine
@@ -9,8 +9,8 @@ import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Char8 as C
 import Data.Binary.Get
 import Prelude hiding (getLine)
-import DPTypes
-import PacketParser
+import DarkPlaces.DPTypes
+import DarkPlaces.PacketParser
 
 
 getLine :: Get L.ByteString

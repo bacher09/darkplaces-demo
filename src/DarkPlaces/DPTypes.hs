@@ -1,4 +1,4 @@
-module DPTypes (
+module DarkPlaces.DPTypes (
     QVector(),
     ClientStatsEnum(..),
     ClientStatsList(..),

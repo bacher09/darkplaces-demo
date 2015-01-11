@@ -1,4 +1,4 @@
-module ProtocolConstants  where
+module DarkPlaces.ProtocolConstants  where
 
 u_morebits_bit = 0 :: Int
 u_origin1_bit = 1 :: Int

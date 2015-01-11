@@ -1,4 +1,4 @@
-module PacketParser (
+module DarkPlaces.PacketParser (
     DPServerPacket(..),
     ProtocolVersion(..),
     defaultDemoState,
@@ -23,8 +23,8 @@ import Control.Monad.Trans.Writer.Lazy
 import Control.Monad.Trans.State.Lazy
 import Control.Monad.Trans.Class
 import Data.Bits
-import ProtocolConstants
-import DPTypes
+import DarkPlaces.ProtocolConstants
+import DarkPlaces.DPTypes
 
 
 
