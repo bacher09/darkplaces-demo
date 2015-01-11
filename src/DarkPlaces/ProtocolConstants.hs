@@ -1,169 +1,336 @@
 module DarkPlaces.ProtocolConstants  where
 
-u_morebits_bit = 0 :: Int
-u_origin1_bit = 1 :: Int
-u_origin2_bit = 2 :: Int
-u_origin3_bit = 3 :: Int
-u_angle2_bit = 4 :: Int
-u_step_bit = 5 :: Int
-u_frame_bit = 6 :: Int
-u_signal_bit = 7 :: Int
-u_angle1_bit = 8 :: Int
-u_angle3_bit = 9 :: Int
-u_model_bit = 10 :: Int
-u_colormap_bit = 11 :: Int
-u_skin_bit = 12 :: Int
-u_effects_bit = 13 :: Int
-u_longentity_bit = 14 :: Int
-u_extend1_bit = 15 :: Int
-u_delta_bit = 16 :: Int
-u_alpha_bit = 17 :: Int
-u_scale_bit = 18 :: Int
-u_effects2_bit = 19 :: Int
-u_glowsize_bit = 20 :: Int
-u_glowcolor_bit = 21 :: Int
-u_colormod_bit = 22 :: Int
-u_extend2_bit = 23 :: Int
-u_glowtrail_bit = 24 :: Int
-u_viewmodel_bit = 25 :: Int
-u_frame2_bit = 26 :: Int
-u_model2_bit = 27 :: Int
-u_exteriormodel_bit = 28 :: Int
-u_unused29_bit = 29 :: Int
-u_unused30_bit = 30 :: Int
-u_extend3_bit = 31 :: Int
-su_viewheight_bit = 0 :: Int
-su_idealpitch_bit = 1 :: Int
-su_punch1_bit = 2 :: Int
-su_punch2_bit = 3 :: Int
-su_punch3_bit = 4 :: Int
-su_velocity1_bit = 5 :: Int
-su_velocity2_bit = 6 :: Int
-su_velocity3_bit = 7 :: Int
-su_items_bit = 9 :: Int
-su_onground_bit = 10 :: Int
-su_inwater_bit = 11 :: Int
-su_weaponframe_bit = 12 :: Int
-su_armor_bit = 13 :: Int
-su_weapon_bit = 14 :: Int
-su_extend1_bit = 15 :: Int
-su_punchvec1_bit = 16 :: Int
-su_punchvec2_bit = 17 :: Int
-su_punchvec3_bit = 18 :: Int
-su_viewzoom_bit = 19 :: Int
-su_unused20_bit = 20 :: Int
-su_unused21_bit = 21 :: Int
-su_unused22_bit = 22 :: Int
-su_extend2_bit = 23 :: Int
-su_unused24_bit = 24 :: Int
-su_unused25_bit = 25 :: Int
-su_unused26_bit = 26 :: Int
-su_unused27_bit = 27 :: Int
-su_unused28_bit = 28 :: Int
-su_unused29_bit = 29 :: Int
-su_unused30_bit = 30 :: Int
-su_extend3_bit = 31 :: Int
-snd_volume_bit = 0 :: Int
-snd_attenuation_bit = 1 :: Int
-snd_looping_bit = 2 :: Int
-snd_largeentity_bit = 3 :: Int
-snd_largesound_bit = 4 :: Int
-snd_speedushort4000_bit = 5 :: Int
-e_origin1_bit = 0 :: Int
-e_origin2_bit = 1 :: Int
-e_origin3_bit = 2 :: Int
-e_angle1_bit = 3 :: Int
-e_angle2_bit = 4 :: Int
-e_angle3_bit = 5 :: Int
-e_model1_bit = 6 :: Int
-e_extend1_bit = 7 :: Int
-e_frame1_bit = 8 :: Int
-e_effects1_bit = 9 :: Int
-e_alpha_bit = 10 :: Int
-e_scale_bit = 11 :: Int
-e_colormap_bit = 12 :: Int
-e_skin_bit = 13 :: Int
-e_flags_bit = 14 :: Int
-e_extend2_bit = 15 :: Int
-e_frame2_bit = 16 :: Int
-e_model2_bit = 17 :: Int
-e_effects2_bit = 18 :: Int
-e_glowsize_bit = 19 :: Int
-e_glowcolor_bit = 20 :: Int
-e_light_bit = 21 :: Int
-e_lightpflags_bit = 22 :: Int
-e_extend3_bit = 23 :: Int
-e_sound1_bit = 24 :: Int
-e_soundvol_bit = 25 :: Int
-e_soundatten_bit = 26 :: Int
-e_tagattachment_bit = 27 :: Int
-e_lightstyle_bit = 28 :: Int
-e_unused6_bit = 29 :: Int
-e_unused7_bit = 30 :: Int
-e_extend4_bit = 31 :: Int
-e5_fullupdate_bit = 0 :: Int
-e5_origin_bit = 1 :: Int
-e5_angles_bit = 2 :: Int
-e5_model_bit = 3 :: Int
-e5_frame_bit = 4 :: Int
-e5_skin_bit = 5 :: Int
-e5_effects_bit = 6 :: Int
-e5_extend1_bit = 7 :: Int
-e5_flags_bit = 8 :: Int
-e5_alpha_bit = 9 :: Int
-e5_scale_bit = 10 :: Int
-e5_origin32_bit = 11 :: Int
-e5_angles16_bit = 12 :: Int
-e5_model16_bit = 13 :: Int
-e5_colormap_bit = 14 :: Int
-e5_extend2_bit = 15 :: Int
-e5_attachment_bit = 16 :: Int
-e5_light_bit = 17 :: Int
-e5_glow_bit = 18 :: Int
-e5_effects16_bit = 19 :: Int
-e5_effects32_bit = 20 :: Int
-e5_frame16_bit = 21 :: Int
-e5_colormod_bit = 22 :: Int
-e5_extend3_bit = 23 :: Int
-e5_glowmod_bit = 24 :: Int
-e5_complexanimation_bit = 25 :: Int
-e5_traileffectnum_bit = 26 :: Int
-e5_unused27_bit = 27 :: Int
-e5_unused28_bit = 28 :: Int
-e5_unused29_bit = 29 :: Int
-e5_unused30_bit = 30 :: Int
-e5_extend4_bit = 31 :: Int
-qw_pf_msec_bit = 0 :: Int
-qw_pf_command_bit = 1 :: Int
-qw_pf_velocity1_bit = 2 :: Int
-qw_pf_velocity2_bit = 3 :: Int
-qw_pf_velocity3_bit = 4 :: Int
-qw_pf_model_bit = 5 :: Int
-qw_pf_skinnum_bit = 6 :: Int
-qw_pf_effects_bit = 7 :: Int
-qw_pf_weaponframe_bit = 8 :: Int
-qw_pf_dead_bit = 9 :: Int
-qw_pf_gib_bit = 10 :: Int
-qw_pf_nograv_bit = 11 :: Int
-qw_cm_angle1_bit = 0 :: Int
-qw_cm_angle3_bit = 1 :: Int
-qw_cm_forward_bit = 2 :: Int
-qw_cm_side_bit = 3 :: Int
-qw_cm_up_bit = 4 :: Int
-qw_cm_buttons_bit = 5 :: Int
-qw_cm_impulse_bit = 6 :: Int
-qw_cm_angle2_bit = 7 :: Int
-qw_u_origin1_bit = 9 :: Int
-qw_u_origin2_bit = 10 :: Int
-qw_u_origin3_bit = 11 :: Int
-qw_u_angle2_bit = 12 :: Int
-qw_u_frame_bit = 13 :: Int
-qw_u_remove_bit = 14 :: Int
-qw_u_morebits_bit = 15 :: Int
-qw_u_angle1_bit = 0 :: Int
-qw_u_angle3_bit = 1 :: Int
-qw_u_model_bit = 2 :: Int
-qw_u_colormap_bit = 3 :: Int
-qw_u_skin_bit = 4 :: Int
-qw_u_effects_bit = 5 :: Int 
-qw_u_solid_bit = 6 :: Int
+u_morebits_bit :: Int
+u_morebits_bit = 0
+u_origin1_bit :: Int
+u_origin1_bit = 1
+u_origin2_bit :: Int
+u_origin2_bit = 2
+u_origin3_bit :: Int
+u_origin3_bit = 3
+u_angle2_bit :: Int
+u_angle2_bit = 4
+u_step_bit :: Int
+u_step_bit = 5
+u_frame_bit :: Int
+u_frame_bit = 6
+u_signal_bit :: Int
+u_signal_bit = 7
+u_angle1_bit :: Int
+u_angle1_bit = 8
+u_angle3_bit :: Int
+u_angle3_bit = 9
+u_model_bit :: Int
+u_model_bit = 10
+u_colormap_bit :: Int
+u_colormap_bit = 11
+u_skin_bit :: Int
+u_skin_bit = 12
+u_effects_bit :: Int
+u_effects_bit = 13
+u_longentity_bit :: Int
+u_longentity_bit = 14
+u_extend1_bit :: Int
+u_extend1_bit = 15
+u_delta_bit :: Int
+u_delta_bit = 16
+u_alpha_bit :: Int
+u_alpha_bit = 17
+u_scale_bit :: Int
+u_scale_bit = 18
+u_effects2_bit :: Int
+u_effects2_bit = 19
+u_glowsize_bit :: Int
+u_glowsize_bit = 20
+u_glowcolor_bit :: Int
+u_glowcolor_bit = 21
+u_colormod_bit :: Int
+u_colormod_bit = 22
+u_extend2_bit :: Int
+u_extend2_bit = 23
+u_glowtrail_bit :: Int
+u_glowtrail_bit = 24
+u_viewmodel_bit :: Int
+u_viewmodel_bit = 25
+u_frame2_bit :: Int
+u_frame2_bit = 26
+u_model2_bit :: Int
+u_model2_bit = 27
+u_exteriormodel_bit :: Int
+u_exteriormodel_bit = 28
+u_unused29_bit :: Int
+u_unused29_bit = 29
+u_unused30_bit :: Int
+u_unused30_bit = 30
+u_extend3_bit :: Int
+u_extend3_bit = 31
+su_viewheight_bit :: Int
+su_viewheight_bit = 0
+su_idealpitch_bit :: Int
+su_idealpitch_bit = 1
+su_punch1_bit :: Int
+su_punch1_bit = 2
+su_punch2_bit :: Int
+su_punch2_bit = 3
+su_punch3_bit :: Int
+su_punch3_bit = 4
+su_velocity1_bit :: Int
+su_velocity1_bit = 5
+su_velocity2_bit :: Int
+su_velocity2_bit = 6
+su_velocity3_bit :: Int
+su_velocity3_bit = 7
+su_items_bit :: Int
+su_items_bit = 9
+su_onground_bit :: Int
+su_onground_bit = 10
+su_inwater_bit :: Int
+su_inwater_bit = 11
+su_weaponframe_bit :: Int
+su_weaponframe_bit = 12
+su_armor_bit :: Int
+su_armor_bit = 13
+su_weapon_bit :: Int
+su_weapon_bit = 14
+su_extend1_bit :: Int
+su_extend1_bit = 15
+su_punchvec1_bit :: Int
+su_punchvec1_bit = 16
+su_punchvec2_bit :: Int
+su_punchvec2_bit = 17
+su_punchvec3_bit :: Int
+su_punchvec3_bit = 18
+su_viewzoom_bit :: Int
+su_viewzoom_bit = 19
+su_unused20_bit :: Int
+su_unused20_bit = 20
+su_unused21_bit :: Int
+su_unused21_bit = 21
+su_unused22_bit :: Int
+su_unused22_bit = 22
+su_extend2_bit :: Int
+su_extend2_bit = 23
+su_unused24_bit :: Int
+su_unused24_bit = 24
+su_unused25_bit :: Int
+su_unused25_bit = 25
+su_unused26_bit :: Int
+su_unused26_bit = 26
+su_unused27_bit :: Int
+su_unused27_bit = 27
+su_unused28_bit :: Int
+su_unused28_bit = 28
+su_unused29_bit :: Int
+su_unused29_bit = 29
+su_unused30_bit :: Int
+su_unused30_bit = 30
+su_extend3_bit :: Int
+su_extend3_bit = 31
+snd_volume_bit :: Int
+snd_volume_bit = 0
+snd_attenuation_bit :: Int
+snd_attenuation_bit = 1
+snd_looping_bit :: Int
+snd_looping_bit = 2
+snd_largeentity_bit :: Int
+snd_largeentity_bit = 3
+snd_largesound_bit :: Int
+snd_largesound_bit = 4
+snd_speedushort4000_bit :: Int
+snd_speedushort4000_bit = 5
+e_origin1_bit :: Int
+e_origin1_bit = 0
+e_origin2_bit :: Int
+e_origin2_bit = 1
+e_origin3_bit :: Int
+e_origin3_bit = 2
+e_angle1_bit :: Int
+e_angle1_bit = 3
+e_angle2_bit :: Int
+e_angle2_bit = 4
+e_angle3_bit :: Int
+e_angle3_bit = 5
+e_model1_bit :: Int
+e_model1_bit = 6
+e_extend1_bit :: Int
+e_extend1_bit = 7
+e_frame1_bit :: Int
+e_frame1_bit = 8
+e_effects1_bit :: Int
+e_effects1_bit = 9
+e_alpha_bit :: Int
+e_alpha_bit = 10
+e_scale_bit :: Int
+e_scale_bit = 11
+e_colormap_bit :: Int
+e_colormap_bit = 12
+e_skin_bit :: Int
+e_skin_bit = 13
+e_flags_bit :: Int
+e_flags_bit = 14
+e_extend2_bit :: Int
+e_extend2_bit = 15
+e_frame2_bit :: Int
+e_frame2_bit = 16
+e_model2_bit :: Int
+e_model2_bit = 17
+e_effects2_bit :: Int
+e_effects2_bit = 18
+e_glowsize_bit :: Int
+e_glowsize_bit = 19
+e_glowcolor_bit :: Int
+e_glowcolor_bit = 20
+e_light_bit :: Int
+e_light_bit = 21
+e_lightpflags_bit :: Int
+e_lightpflags_bit = 22
+e_extend3_bit :: Int
+e_extend3_bit = 23
+e_sound1_bit :: Int
+e_sound1_bit = 24
+e_soundvol_bit :: Int
+e_soundvol_bit = 25
+e_soundatten_bit :: Int
+e_soundatten_bit = 26
+e_tagattachment_bit :: Int
+e_tagattachment_bit = 27
+e_lightstyle_bit :: Int
+e_lightstyle_bit = 28
+e_unused6_bit :: Int
+e_unused6_bit = 29
+e_unused7_bit :: Int
+e_unused7_bit = 30
+e_extend4_bit :: Int
+e_extend4_bit = 31
+e5_fullupdate_bit :: Int
+e5_fullupdate_bit = 0
+e5_origin_bit :: Int
+e5_origin_bit = 1
+e5_angles_bit :: Int
+e5_angles_bit = 2
+e5_model_bit :: Int
+e5_model_bit = 3
+e5_frame_bit :: Int
+e5_frame_bit = 4
+e5_skin_bit :: Int
+e5_skin_bit = 5
+e5_effects_bit :: Int
+e5_effects_bit = 6
+e5_extend1_bit :: Int
+e5_extend1_bit = 7
+e5_flags_bit :: Int
+e5_flags_bit = 8
+e5_alpha_bit :: Int
+e5_alpha_bit = 9
+e5_scale_bit :: Int
+e5_scale_bit = 10
+e5_origin32_bit :: Int
+e5_origin32_bit = 11
+e5_angles16_bit :: Int
+e5_angles16_bit = 12
+e5_model16_bit :: Int
+e5_model16_bit = 13
+e5_colormap_bit :: Int
+e5_colormap_bit = 14
+e5_extend2_bit :: Int
+e5_extend2_bit = 15
+e5_attachment_bit :: Int
+e5_attachment_bit = 16
+e5_light_bit :: Int
+e5_light_bit = 17
+e5_glow_bit :: Int
+e5_glow_bit = 18
+e5_effects16_bit :: Int
+e5_effects16_bit = 19
+e5_effects32_bit :: Int
+e5_effects32_bit = 20
+e5_frame16_bit :: Int
+e5_frame16_bit = 21
+e5_colormod_bit :: Int
+e5_colormod_bit = 22
+e5_extend3_bit :: Int
+e5_extend3_bit = 23
+e5_glowmod_bit :: Int
+e5_glowmod_bit = 24
+e5_complexanimation_bit :: Int
+e5_complexanimation_bit = 25
+e5_traileffectnum_bit :: Int
+e5_traileffectnum_bit = 26
+e5_unused27_bit :: Int
+e5_unused27_bit = 27
+e5_unused28_bit :: Int
+e5_unused28_bit = 28
+e5_unused29_bit :: Int
+e5_unused29_bit = 29
+e5_unused30_bit :: Int
+e5_unused30_bit = 30
+e5_extend4_bit :: Int
+e5_extend4_bit = 31
+qw_pf_msec_bit :: Int
+qw_pf_msec_bit = 0
+qw_pf_command_bit :: Int
+qw_pf_command_bit = 1
+qw_pf_velocity1_bit :: Int
+qw_pf_velocity1_bit = 2
+qw_pf_velocity2_bit :: Int
+qw_pf_velocity2_bit = 3
+qw_pf_velocity3_bit :: Int
+qw_pf_velocity3_bit = 4
+qw_pf_model_bit :: Int
+qw_pf_model_bit = 5
+qw_pf_skinnum_bit :: Int
+qw_pf_skinnum_bit = 6
+qw_pf_effects_bit :: Int
+qw_pf_effects_bit = 7
+qw_pf_weaponframe_bit :: Int
+qw_pf_weaponframe_bit = 8
+qw_pf_dead_bit :: Int
+qw_pf_dead_bit = 9
+qw_pf_gib_bit :: Int
+qw_pf_gib_bit = 10
+qw_pf_nograv_bit :: Int
+qw_pf_nograv_bit = 11
+qw_cm_angle1_bit :: Int
+qw_cm_angle1_bit = 0
+qw_cm_angle3_bit :: Int
+qw_cm_angle3_bit = 1
+qw_cm_forward_bit :: Int
+qw_cm_forward_bit = 2
+qw_cm_side_bit :: Int
+qw_cm_side_bit = 3
+qw_cm_up_bit :: Int
+qw_cm_up_bit = 4
+qw_cm_buttons_bit :: Int
+qw_cm_buttons_bit = 5
+qw_cm_impulse_bit :: Int
+qw_cm_impulse_bit = 6
+qw_cm_angle2_bit :: Int
+qw_cm_angle2_bit = 7
+qw_u_origin1_bit :: Int
+qw_u_origin1_bit = 9
+qw_u_origin2_bit :: Int
+qw_u_origin2_bit = 10
+qw_u_origin3_bit :: Int
+qw_u_origin3_bit = 11
+qw_u_angle2_bit :: Int
+qw_u_angle2_bit = 12
+qw_u_frame_bit :: Int
+qw_u_frame_bit = 13
+qw_u_remove_bit :: Int
+qw_u_remove_bit = 14
+qw_u_morebits_bit :: Int
+qw_u_morebits_bit = 15
+qw_u_angle1_bit :: Int
+qw_u_angle1_bit = 0
+qw_u_angle3_bit :: Int
+qw_u_angle3_bit = 1
+qw_u_model_bit :: Int
+qw_u_model_bit = 2
+qw_u_colormap_bit :: Int
+qw_u_colormap_bit = 3
+qw_u_skin_bit :: Int
+qw_u_skin_bit = 4
+qw_u_effects_bit :: Int
+qw_u_effects_bit = 5
+qw_u_solid_bit :: Int
+qw_u_solid_bit = 6
