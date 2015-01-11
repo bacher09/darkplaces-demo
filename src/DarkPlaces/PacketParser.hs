@@ -63,7 +63,7 @@ data DPServerPacket = DPNop
                     | DPStopSound Word16
                     | DPUpdateColors Word8 Word8 -- <user number> <user color>
                     | DPParticle
-                    | DPDamage
+                    | DPDamage Int Int QVector -- <armor> <blood> <from locatiom>
                     | DPSpawnStatic
                     | DPSpawnBaseline
                     | DPTempEntity
@@ -210,6 +210,7 @@ getServerPacketParser t = case t of
     15 -> Right $ getProtocol >>= \p -> getGameMode >>= lift . parseClientData p
     16 -> Right $ lift parseStopSound
     17 -> Right $ lift parseUpdateColors
+    19 -> Right $ lift parseDamage
     25 -> Right $ lift parseSignonNum
     31 -> Right $ lift parseFinale
     32 -> Right $ lift parseCDTrack
@@ -322,7 +323,6 @@ parseClientData proto mode = do
     neharaFamily = [(ProtocolNehahraMovie)..(ProtocolNehahraBJP3)]
     darkplacesUpto4 = [(ProtocolDarkplaces1)..(ProtocolDarkplaces4)]
     hipnotic_demos = quakes ++ neharaFamily ++ [(ProtocolDarkplaces1)..(ProtocolDarkplaces5)]
-    getWord8asInt = (fromIntegral :: Word8 -> Int) <$> getWord8
     getInt8asInt = (fromIntegral :: Int8 -> Int) <$> getInt8
     getWord16as32 = (fromIntegral :: Word16 -> Word32) <$> getWord16le
     getInt16asInt = (fromIntegral :: Int16 -> Int) <$> getInt16le
@@ -426,6 +426,10 @@ parseStopSound = DPStopSound <$> getWord16le -- (n `shiftR` 3) (n .&. 7)
 parseUpdateColors :: ServerPacketParser
 parseUpdateColors = DPUpdateColors <$> getWord8 <*> getWord8
 
+-- 19
+parseDamage :: ServerPacketParser
+parseDamage = DPDamage <$> getWord8asInt <*> getWord8asInt <*> getQVector
+
 
 -- 25
 parseSignonNum :: ServerPacketParser
@@ -463,6 +467,7 @@ getStringList = do
 getInt8 :: Get Int8
 getInt8 = fromIntegral <$> getWord8
 
+getWord8asInt = (fromIntegral :: Word8 -> Int) <$> getWord8
 
 getInt16le :: Get Int16
 getInt16le = fromIntegral <$> getWord16le
