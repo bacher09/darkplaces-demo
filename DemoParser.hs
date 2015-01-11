@@ -33,10 +33,3 @@ getDemoMessages = do
     if empty
         then return []
         else (:) <$> getDemoMessage <*> getDemoMessages
-
-
-{-*Main System.IO.Unsafe> let mdata = unsafePerformIO $ L.readFile "../slava_qbit_gib-warehouse.dem"-}
-{-*Main System.IO.Unsafe> let pm = runGet (getLine >> getDemoMessages) mdata-}
-{-*Main System.IO.Unsafe> let messages = Prelude.map snd pm-}
-{-*Main System.IO.Unsafe> let packets = Prelude.map (runGet parsePackets) messages -}
-{-*Main System.IO.Unsafe> mapM_ print (take 100 packets)-}
