@@ -74,7 +74,7 @@ data DPServerPacket = DPNop
                     | DPFoundSecret
                     | DPSpawnStaticSound
                     | DPIntermission
-                    | DPFinale
+                    | DPFinale L.ByteString
                     | DPCDTrack Word8 Word8 -- <cd track> <loop track>
                     | DPSellScreen
                     | DPCutScene
@@ -211,6 +211,7 @@ getServerPacketParser t = case t of
     16 -> Right $ lift parseStopSound
     17 -> Right $ lift parseUpdateColors
     25 -> Right $ lift parseSignonNum
+    31 -> Right $ lift parseFinale
     32 -> Right $ lift parseCDTrack
     50 -> Right $ lift parseDownloadData
     59 -> Right $ lift parseSpawnStaticSound2
@@ -430,6 +431,10 @@ parseUpdateColors = DPUpdateColors <$> getWord8 <*> getWord8
 parseSignonNum :: ServerPacketParser
 parseSignonNum = DPSignonNum <$> getWord8
 
+-- 31
+parseFinale :: ServerPacketParser
+parseFinale = DPFinale <$> getLazyByteStringNul
+
 -- 32
 parseCDTrack :: ServerPacketParser
 parseCDTrack = DPCDTrack <$> getWord8 <*> getWord8
@@ -442,7 +447,7 @@ parseDownloadData = do
     return $ DPDownloadData start size download_data
 
 
--- need check protocol for QVector
+--TODO: need check protocol for QVector
 parseSpawnStaticSound2 :: ServerPacketParser
 parseSpawnStaticSound2 = DPSpawnStaticSound2 <$> getQVector <*> getWord16le <*> getWord8 <*> getWord8
 
