@@ -45,8 +45,7 @@ data ProtocolVersion = ProtocolQuake
     deriving(Show, Eq, Ord, Bounded, Enum)
 
 
-data DPServerPacket = DPBad
-                    | DPNop
+data DPServerPacket = DPNop
                     | DPDisconnect
                     | DPUpdateStat Word8 Word32 -- Should be signed ?
                     | DPVersion (Maybe ProtocolVersion)
@@ -168,7 +167,6 @@ parsePackets = do
 
 getServerPacketParser :: Word8 -> Either Word8 (ServerProtocolStateM DPServerPacket)
 getServerPacketParser t = case t of
-    0 -> Right $ lift parseBad
     1 -> Right $ lift parseNop
     2 -> Right $ lift parseDisconnect
     3 -> Right $ lift parseUpdateStats
@@ -191,9 +189,6 @@ getServerPacketParser t = case t of
     50 -> Right $ lift parseDownloadData
     59 -> Right $ lift parseSpawnStaticSound2
     _ ->  Left t
-
-parseBad :: ServerPacketParser
-parseBad = return DPBad
 
 parseNop :: ServerPacketParser
 parseNop = return DPNop
