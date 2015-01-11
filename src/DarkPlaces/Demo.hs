@@ -8,7 +8,7 @@ import Control.Applicative
 import qualified Data.ByteString.Lazy as L
 import Data.Binary.Get
 import Prelude hiding (getLine)
-import DarkPlaces.DPTypes
+import DarkPlaces.Types
 
 
 getLine :: Get L.ByteString

@@ -24,7 +24,7 @@ import Control.Monad.Trans.State.Lazy
 import Control.Monad.Trans.Class
 import Data.Bits
 import DarkPlaces.ProtocolConstants
-import DarkPlaces.DPTypes
+import DarkPlaces.Types
 
 
 

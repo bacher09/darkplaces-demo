@@ -14,7 +14,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     DarkPlaces.Demo, DarkPlaces.DPTypes, DarkPlaces.PacketParser, DarkPlaces.ProtocolConstants
+  exposed-modules:     DarkPlaces.Demo, DarkPlaces.Types, DarkPlaces.PacketParser, DarkPlaces.ProtocolConstants
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8,
