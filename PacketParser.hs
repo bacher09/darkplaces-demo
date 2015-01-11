@@ -87,8 +87,14 @@ data DPServerPacket = DPNop
 
 
 data ServerInfoData = QWServerInfoData
-                    | DPServerInfoData ProtocolVersion Word8 Word8 L.ByteString [L.ByteString] [L.ByteString]
-    deriving(Show, Eq)
+                    | DPServerInfoData {
+    dpserverProtocol :: ProtocolVersion,
+    dpmaxClients :: Word8,
+    dpgameType :: Word8,
+    dpsignonMessage :: L.ByteString,
+    dpmodelsPrecached :: [L.ByteString],
+    dpsoundsPrecached :: [L.ByteString]
+    } deriving(Show, Eq)
 
 
 data SetAngleData = SetAngleOld Float Float Float
@@ -121,10 +127,25 @@ type ServerProtocolStateM a = StateT ServerProtocolState Get a
 getProtocol :: ServerProtocolStateM ProtocolVersion
 getProtocol = protocol <$> get
 
+setProtocol :: ProtocolVersion -> ServerProtocolStateM ()
+setProtocol proto = modify $ \s -> s {protocol=proto}
 
 getGameMode :: ServerProtocolStateM GameMode
 getGameMode = gamemode <$> get
 
+
+setGameMode :: GameMode -> ServerProtocolStateM ()
+setGameMode mode = modify $ \s -> s {gamemode=mode}
+
+
+updateProtoState :: DPServerPacket -> ServerProtocolStateM ()
+updateProtoState (DPVersion (Just p)) = setProtocol p
+updateProtoState (DPServerInfo (Right p@(DPServerInfoData {}))) = setProtocol $ dpserverProtocol p
+updateProtoState _ = return ()
+
+
+updatesState :: DPServerPacket -> ServerProtocolStateM DPServerPacket
+updatesState = \x -> updateProtoState x >> return x
 
 defaultDemoState = ServerProtocolState {protocol=ProtocolDarkplaces7, gamemode=GameXonotic}
 
@@ -175,14 +196,14 @@ getServerPacketParser t = case t of
     1 -> Right $ lift parseNop
     2 -> Right $ lift parseDisconnect
     3 -> Right $ lift parseUpdateStats
-    4 -> Right $ lift parseVersion
+    4 -> Right $ lift parseVersion >>= updatesState
     5 -> Right $ lift parseSetView
     -- 6 sound
     7 -> Right $ lift parseTime
     8 -> Right $ lift parsePrint
     9 -> Right $ lift parseStuffText
     10 -> Right $ lift . parseSetAngle =<< getProtocol
-    11 -> Right $ lift parseServerInfo
+    11 -> Right $ lift parseServerInfo >>= updatesState
     12 -> Right $ lift parseLightStyle
     13 -> Right $ lift parseUpdateName
     14 -> Right $ lift parseUpdateFrags
@@ -234,9 +255,8 @@ parseServerInfo = do
     let maybe_proto = protocolVersionFromNum proto_num
     case maybe_proto of
         Nothing -> return $ DPServerInfo (Left proto_num)
-        Just proto -> if proto == ProtocolQuakeWorld
-            then toDPServerPacket <$> parseQuakeWorldInfo proto
-            else toDPServerPacket <$> parseOtherInfo proto
+        Just proto@(ProtocolQuakeWorld) -> toDPServerPacket <$> parseQuakeWorldInfo proto
+        Just proto -> toDPServerPacket <$> parseOtherInfo proto
   where
     parseQuakeWorldInfo proto = undefined
     parseOtherInfo proto = do
@@ -245,7 +265,13 @@ parseServerInfo = do
         signon_msg <- getLazyByteStringNul
         models_precached <- getStringList
         sounds_precached <- getStringList
-        return $ DPServerInfoData proto maxclients gametype signon_msg models_precached sounds_precached
+        return $ DPServerInfoData {
+            dpserverProtocol=proto,
+            dpmaxClients=maxclients,
+            dpgameType=gametype,
+            dpsignonMessage=signon_msg,
+            dpmodelsPrecached=models_precached,
+            dpsoundsPrecached=sounds_precached}
     toDPServerPacket = DPServerInfo . Right
 
 
