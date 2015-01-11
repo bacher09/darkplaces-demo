@@ -108,7 +108,8 @@ data ClientDataPacket = ClientDataPacket {
 
 
 data ServerProtocolState = ServerProtocolState {
-    protocol :: ProtocolVersion
+    protocol :: ProtocolVersion,
+    gamemode :: GameMode
 } deriving(Show, Eq)
 
 
@@ -121,7 +122,11 @@ getProtocol :: ServerProtocolStateM ProtocolVersion
 getProtocol = protocol <$> get
 
 
-defaultDemoState = ServerProtocolState {protocol=ProtocolDarkplaces7}
+getGameMode :: ServerProtocolStateM GameMode
+getGameMode = gamemode <$> get
+
+
+defaultDemoState = ServerProtocolState {protocol=ProtocolDarkplaces7, gamemode=GameXonotic}
 
 
 protocolVersionMaps :: [(Word32, ProtocolVersion, String)]
@@ -181,7 +186,7 @@ getServerPacketParser t = case t of
     12 -> Right $ lift parseLightStyle
     13 -> Right $ lift parseUpdateName
     14 -> Right $ lift parseUpdateFrags
-    15 -> Right $ lift . parseClientData =<< getProtocol
+    15 -> Right $ getProtocol >>= \p -> getGameMode >>= lift . parseClientData p
     16 -> Right $ lift parseStopSound
     17 -> Right $ lift parseUpdateColors
     25 -> Right $ lift parseSignonNum
@@ -254,8 +259,8 @@ parseUpdateName = DPUpdateName <$> getWord8 <*> getLazyByteStringNul
 parseUpdateFrags :: ServerPacketParser
 parseUpdateFrags = DPUpdateFrags <$> getWord8 <*> (fromIntegral <$> getWord16le)
 
-parseClientData :: ProtocolVersion -> ServerPacketParser
-parseClientData proto = do
+parseClientData :: ProtocolVersion -> GameMode -> ServerPacketParser
+parseClientData proto mode = do
     bits <- getBits
     ms_view_height <- maybeDo (testBit bits su_viewheight_bit) getInt8
     m_ideal_pitch <- maybeDo (testBit bits su_idealpitch_bit) getInt8
@@ -381,8 +386,11 @@ parseClientData proto = do
         tell =<< statsVal NailsStat <$> lift getWord8asInt
         tell =<< statsVal RocketsStat <$> lift getWord8asInt
         tell =<< statsVal CellsStat <$> lift getWord8asInt
-        -- TODO: check gamemode
-        -- https://github.com/xonotic/darkplaces/blob/45f4690471d588436f2033dc5af008d40d57b36b/cl_parse.c#L2235
+        let awep = if mode `elem` [GameNexuiz, GameVoreTournament, GameHipnotic, GameRogue, GameQuoth]
+            then shift 1 <$> getWord8asInt
+            else getWord8asInt
+
+        tell =<< statsVal ActiveWeaponStat <$> lift awep
 
 
 parseStopSound :: ServerPacketParser
