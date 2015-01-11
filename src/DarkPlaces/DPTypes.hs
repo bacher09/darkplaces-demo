@@ -83,5 +83,5 @@ getQVector = consQVector <$> getFloat32le <*> getFloat32le <*> getFloat32le
 
 qvectorFromList :: [Float] -> Maybe QVector
 qvectorFromList arg = case arg of
-    (x:y:z:[]) -> Just $ QVector (x, y, z)
+    [x, y, z] -> Just $ QVector (x, y, z)
     _          -> Nothing
