@@ -172,7 +172,7 @@ protocolVersionMaps = [
 protocolVersionFromNum :: Word32 -> Maybe ProtocolVersion
 protocolVersionFromNum key = SM.lookup key map_table
   where
-    map_table = SM.fromList $ map (\(x, y, z) -> (x, y)) protocolVersionMaps
+    map_table = SM.fromList $ map (\(x, y, _) -> (x, y)) protocolVersionMaps
 
 
 parsePacket :: ServerProtocolStateM (Either Word8 DPServerPacket)

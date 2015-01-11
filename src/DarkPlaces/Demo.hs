@@ -6,11 +6,9 @@ module DarkPlaces.Demo (
 import Control.Monad
 import Control.Applicative
 import qualified Data.ByteString.Lazy as L
-import qualified Data.ByteString.Char8 as C
 import Data.Binary.Get
 import Prelude hiding (getLine)
 import DarkPlaces.DPTypes
-import DarkPlaces.PacketParser
 
 
 getLine :: Get L.ByteString
@@ -21,6 +19,7 @@ getLine = do
         else L.cons' b <$> getLine
 
 
+getDemoMessage :: Get (QVector, L.ByteString)
 getDemoMessage = do
     size <- fromIntegral <$> getWord32le
     angls <- getQVector
@@ -28,6 +27,7 @@ getDemoMessage = do
     return (angls, msg)
 
 
+getDemoMessages :: Get [(QVector, L.ByteString)]
 getDemoMessages = do
     empty <- isEmpty
     if empty
