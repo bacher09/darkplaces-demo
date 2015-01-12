@@ -213,6 +213,7 @@ getServerPacketParser t = case t of
     17 -> Right $ lift parseUpdateColors
     19 -> Right $ lift parseDamage
     25 -> Right $ lift parseSignonNum
+    30 -> Right $ lift parseIntermission
     31 -> Right $ lift parseFinale
     32 -> Right $ lift parseCDTrack
     50 -> Right $ lift parseDownloadData
@@ -433,11 +434,14 @@ parseDamage = DPDamage <$> getWord8asInt <*> getWord8asInt <*> getQVector
 parseSignonNum :: ServerPacketParser
 parseSignonNum = DPSignonNum <$> getWord8
 
--- 31
+
+-- 30
+parseIntermission :: ServerPacketParser
+parseIntermission = return DPIntermission
+
 parseFinale :: ServerPacketParser
 parseFinale = DPFinale <$> getLazyByteStringNul
 
--- 32
 parseCDTrack :: ServerPacketParser
 parseCDTrack = DPCDTrack <$> getWord8 <*> getWord8
 
