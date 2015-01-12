@@ -15,10 +15,7 @@ import Data.Word
 import Data.Int
 import Data.Maybe
 import qualified Data.ByteString.Lazy as L
-import qualified Data.Map.Strict as SM
 import Data.Traversable (sequence)
-import Data.List (elem, foldl')
-{-import Control.Monad.Writer.Lazy-}
 import Control.Monad.Trans.Writer.Lazy
 import Control.Monad.Trans.State.Lazy
 import Control.Monad.Trans.Class
@@ -26,24 +23,6 @@ import Data.Bits
 import DarkPlaces.ProtocolConstants
 import DarkPlaces.Types
 import DarkPlaces.Binary
-
-
-
-data ProtocolVersion = ProtocolQuake
-                     | ProtocolQuakeWorld
-                     | ProtocolQuakeDP
-                     | ProtocolNehahraMovie
-                     | ProtocolNehahraBJP
-                     | ProtocolNehahraBJP2
-                     | ProtocolNehahraBJP3
-                     | ProtocolDarkplaces1
-                     | ProtocolDarkplaces2
-                     | ProtocolDarkplaces3
-                     | ProtocolDarkplaces4
-                     | ProtocolDarkplaces5
-                     | ProtocolDarkplaces6
-                     | ProtocolDarkplaces7
-    deriving(Show, Eq, Ord, Bounded, Enum)
 
 
 data DPServerPacket = DPNop
@@ -147,34 +126,10 @@ updateProtoState _ = return ()
 
 
 updatesState :: DPServerPacket -> ServerProtocolStateM DPServerPacket
-updatesState = \x -> updateProtoState x >> return x
+updatesState x = updateProtoState x >> return x
 
+defaultDemoState :: ServerProtocolState
 defaultDemoState = ServerProtocolState {protocol=ProtocolDarkplaces7, gamemode=GameXonotic}
-
-
-protocolVersionMaps :: [(Word32, ProtocolVersion, String)]
-protocolVersionMaps = [
-    (3504, ProtocolDarkplaces7, "DP7"),
-	(3503, ProtocolDarkplaces6, "DP6"),
-    (3502, ProtocolDarkplaces5, "DP5"),
-	(3501, ProtocolDarkplaces4, "DP4"),
-	(3500, ProtocolDarkplaces3, "DP3"),
-	(97, ProtocolDarkplaces2, "DP2"),
-	(96, ProtocolDarkplaces1, "DP1"),
-	(15, ProtocolQuakeDP, "QUAKEDP"),
-	(15, ProtocolQuake, "QUAKE"),
-	(28, ProtocolQuakeWorld, "QW"),
-	(250, ProtocolNehahraMovie, "NEHAHRAMOVIE"),
-	(10000, ProtocolNehahraBJP, "NEHAHRABJP"),
-	(10001, ProtocolNehahraBJP2, "NEHAHRABJP2"),
-	(10002, ProtocolNehahraBJP3, "NEHAHRABJP3")]
- 
-
--- get ProtocolVersion by Long Int
-protocolVersionFromNum :: Word32 -> Maybe ProtocolVersion
-protocolVersionFromNum key = SM.lookup key map_table
-  where
-    map_table = SM.fromList $ map (\(x, y, _) -> (x, y)) protocolVersionMaps
 
 
 parsePacket :: ServerProtocolStateM (Either Word8 DPServerPacket)
@@ -195,68 +150,68 @@ parsePackets = do
 
 getServerPacketParser :: Word8 -> Either Word8 (ServerProtocolStateM DPServerPacket)
 getServerPacketParser t = case t of
-    1 -> Right $ lift parseNop
-    2 -> Right $ lift parseDisconnect
-    3 -> Right $ lift parseUpdateStats
-    4 -> Right $ lift parseVersion >>= updatesState
-    5 -> Right $ lift parseSetView
+    1 -> Right $ lift getNop
+    2 -> Right $ lift getDisconnect
+    3 -> Right $ lift getUpdateStats
+    4 -> Right $ lift getVersion >>= updatesState
+    5 -> Right $ lift getSetView
     -- 6 sound
-    7 -> Right $ lift parseTime
-    8 -> Right $ lift parsePrint
-    9 -> Right $ lift parseStuffText
-    10 -> Right $ lift . parseSetAngle =<< getProtocol
-    11 -> Right $ lift parseServerInfo >>= updatesState
-    12 -> Right $ lift parseLightStyle
-    13 -> Right $ lift parseUpdateName
-    14 -> Right $ lift parseUpdateFrags
-    15 -> Right $ getProtocol >>= \p -> getGameMode >>= lift . parseClientData p
-    16 -> Right $ lift parseStopSound
-    17 -> Right $ lift parseUpdateColors
-    19 -> Right $ lift parseDamage
-    25 -> Right $ lift parseSignonNum
-    30 -> Right $ lift parseIntermission
-    31 -> Right $ lift parseFinale
-    32 -> Right $ lift parseCDTrack
-    50 -> Right $ lift parseDownloadData
-    51 -> Right $ lift parseUpdateStatUbyte
-    59 -> Right $ lift parseSpawnStaticSound2
+    7 -> Right $ lift getTime
+    8 -> Right $ lift getPrint
+    9 -> Right $ lift getStuffText
+    10 -> Right $ lift . getSetAngle =<< getProtocol
+    11 -> Right $ lift getServerInfo >>= updatesState
+    12 -> Right $ lift getLightStyle
+    13 -> Right $ lift getUpdateName
+    14 -> Right $ lift getUpdateFrags
+    15 -> Right $ getProtocol >>= \p -> getGameMode >>= lift . getClientData p
+    16 -> Right $ lift getStopSound
+    17 -> Right $ lift getUpdateColors
+    19 -> Right $ lift getDamage
+    25 -> Right $ lift getSignonNum
+    30 -> Right $ lift getIntermission
+    31 -> Right $ lift getFinale
+    32 -> Right $ lift getCDTrack
+    50 -> Right $ lift getDownloadData
+    51 -> Right $ lift getUpdateStatUbyte
+    59 -> Right $ lift getSpawnStaticSound2
     _ ->  Left t
 
-parseNop :: ServerPacketParser
-parseNop = return DPNop
+getNop :: ServerPacketParser
+getNop = return DPNop
 
-parseDisconnect :: ServerPacketParser
-parseDisconnect = return DPDisconnect
+getDisconnect :: ServerPacketParser
+getDisconnect = return DPDisconnect
 
-parseUpdateStats :: ServerPacketParser
-parseUpdateStats = DPUpdateStat <$> getWord8 <*> getWord32le
+getUpdateStats :: ServerPacketParser
+getUpdateStats = DPUpdateStat <$> getWord8 <*> getWord32le
 
-parseVersion :: ServerPacketParser
-parseVersion = DPVersion . protocolVersionFromNum <$> getWord32le
+getVersion :: ServerPacketParser
+getVersion = DPVersion . protocolVersionFromNum <$> getWord32le
 
-parseSetView :: ServerPacketParser
-parseSetView = DPSetView <$> getWord16le
+getSetView :: ServerPacketParser
+getSetView = DPSetView <$> getWord16le
 
 -- parseSound for DPSound
 
-parseTime :: ServerPacketParser
-parseTime = DPTime <$> getFloat32le
+getTime :: ServerPacketParser
+getTime = DPTime <$> getFloat32le
 
-parsePrint ::ServerPacketParser
-parsePrint = DPPrint <$> getLazyByteStringNul
+getPrint ::ServerPacketParser
+getPrint = DPPrint <$> getLazyByteStringNul
 
-parseStuffText :: ServerPacketParser
-parseStuffText = DPStuffText <$> getLazyByteStringNul
+getStuffText :: ServerPacketParser
+getStuffText = DPStuffText <$> getLazyByteStringNul
 
-parseSetAngle :: ProtocolVersion -> ServerPacketParser
-parseSetAngle proto = DPSetAngle <$> if proto `elem` [(ProtocolDarkplaces5)..]
+getSetAngle :: ProtocolVersion -> ServerPacketParser
+getSetAngle proto = DPSetAngle <$> if proto `elem` [(ProtocolDarkplaces5)..]
     then SetAngleNew <$> getAngle16i <*> getAngle16i <*> getAngle16i
     else SetAngleOld <$> getAngle8i <*> getAngle8i <*> getAngle8i
 
  
 -- TODO: not full
-parseServerInfo :: ServerPacketParser
-parseServerInfo = do
+getServerInfo :: ServerPacketParser
+getServerInfo = do
     proto_num <- getWord32le
     let maybe_proto = protocolVersionFromNum proto_num
     case maybe_proto of
@@ -271,7 +226,7 @@ parseServerInfo = do
         signon_msg <- getLazyByteStringNul
         models_precached <- getStringList
         sounds_precached <- getStringList
-        return $ DPServerInfoData {
+        return DPServerInfoData {
             dpserverProtocol=proto,
             dpmaxClients=maxclients,
             dpgameType=gametype,
@@ -281,18 +236,18 @@ parseServerInfo = do
     toDPServerPacket = DPServerInfo . Right
 
 
-parseLightStyle :: ServerPacketParser
-parseLightStyle = DPLightStyle <$> getWord8 <*> getLazyByteStringNul
+getLightStyle :: ServerPacketParser
+getLightStyle = DPLightStyle <$> getWord8 <*> getLazyByteStringNul
 
 
-parseUpdateName :: ServerPacketParser
-parseUpdateName = DPUpdateName <$> getWord8 <*> getLazyByteStringNul
+getUpdateName :: ServerPacketParser
+getUpdateName = DPUpdateName <$> getWord8 <*> getLazyByteStringNul
 
-parseUpdateFrags :: ServerPacketParser
-parseUpdateFrags = DPUpdateFrags <$> getWord8 <*> (fromIntegral <$> getWord16le)
+getUpdateFrags :: ServerPacketParser
+getUpdateFrags = DPUpdateFrags <$> getWord8 <*> (fromIntegral <$> getWord16le)
 
-parseClientData :: ProtocolVersion -> GameMode -> ServerPacketParser
-parseClientData proto mode = do
+getClientData :: ProtocolVersion -> GameMode -> ServerPacketParser
+getClientData proto mode = do
     bits <- getBits
     ms_view_height <- maybeDo (testBit bits su_viewheight_bit) getInt8
     m_ideal_pitch <- maybeDo (testBit bits su_idealpitch_bit) getInt8
@@ -421,47 +376,47 @@ parseClientData proto mode = do
         tell =<< statsVal ActiveWeaponStat <$> lift awep
 
 
-parseStopSound :: ServerPacketParser
-parseStopSound = DPStopSound <$> getWord16le -- (n `shiftR` 3) (n .&. 7)
+getStopSound :: ServerPacketParser
+getStopSound = DPStopSound <$> getWord16le -- (n `shiftR` 3) (n .&. 7)
 
-parseUpdateColors :: ServerPacketParser
-parseUpdateColors = DPUpdateColors <$> getWord8 <*> getWord8
+getUpdateColors :: ServerPacketParser
+getUpdateColors = DPUpdateColors <$> getWord8 <*> getWord8
 
 -- 19
-parseDamage :: ServerPacketParser
-parseDamage = DPDamage <$> getWord8asInt <*> getWord8asInt <*> getQVector
+getDamage :: ServerPacketParser
+getDamage = DPDamage <$> getWord8asInt <*> getWord8asInt <*> getQVector
 
 
 -- 25
-parseSignonNum :: ServerPacketParser
-parseSignonNum = DPSignonNum <$> getWord8
+getSignonNum :: ServerPacketParser
+getSignonNum = DPSignonNum <$> getWord8
 
 
 -- 30
-parseIntermission :: ServerPacketParser
-parseIntermission = return DPIntermission
+getIntermission :: ServerPacketParser
+getIntermission = return DPIntermission
 
-parseFinale :: ServerPacketParser
-parseFinale = DPFinale <$> getLazyByteStringNul
+getFinale :: ServerPacketParser
+getFinale = DPFinale <$> getLazyByteStringNul
 
-parseCDTrack :: ServerPacketParser
-parseCDTrack = DPCDTrack <$> getWord8 <*> getWord8
+getCDTrack :: ServerPacketParser
+getCDTrack = DPCDTrack <$> getWord8 <*> getWord8
 
-parseDownloadData :: ServerPacketParser
-parseDownloadData = do
+getDownloadData :: ServerPacketParser
+getDownloadData = do
     start <- getWord32le
     size <- getWord16le
     download_data <- getLazyByteString $ fromIntegral size
     return $ DPDownloadData start size download_data
 
 
-parseUpdateStatUbyte :: ServerPacketParser
-parseUpdateStatUbyte = do
+getUpdateStatUbyte :: ServerPacketParser
+getUpdateStatUbyte = do
     i <- getWord8
     let stats = maybe (Left i) Right $ statsFromNum i
     v <- fromIntegral <$> getWord8
     return $ DPUpdateStatUbyte stats v
 
 --TODO: need check protocol for QVector
-parseSpawnStaticSound2 :: ServerPacketParser
-parseSpawnStaticSound2 = DPSpawnStaticSound2 <$> getQVector <*> getWord16le <*> getWord8 <*> getWord8
+getSpawnStaticSound2 :: ServerPacketParser
+getSpawnStaticSound2 = DPSpawnStaticSound2 <$> getQVector <*> getWord16le <*> getWord8 <*> getWord8

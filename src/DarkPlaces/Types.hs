@@ -1,10 +1,12 @@
 module DarkPlaces.Types (
     QVector(),
     ClientStatsEnum(..),
-    ClientStatsList(..),
+    ClientStatsList,
+    ProtocolVersion(..),
     GameMode(..),
     consQVector,
     qvectorFromList,
+    protocolVersionFromNum,
     statsFromNum
 ) where
 
@@ -36,6 +38,23 @@ data ClientStatsEnum = HealthStat
 
 
 type ClientStatsList = [(ClientStatsEnum, Int)]
+
+
+data ProtocolVersion = ProtocolQuake
+                     | ProtocolQuakeWorld
+                     | ProtocolQuakeDP
+                     | ProtocolNehahraMovie
+                     | ProtocolNehahraBJP
+                     | ProtocolNehahraBJP2
+                     | ProtocolNehahraBJP3
+                     | ProtocolDarkplaces1
+                     | ProtocolDarkplaces2
+                     | ProtocolDarkplaces3
+                     | ProtocolDarkplaces4
+                     | ProtocolDarkplaces5
+                     | ProtocolDarkplaces6
+                     | ProtocolDarkplaces7
+    deriving(Show, Eq, Ord, Bounded, Enum)
 
 
 data GameMode = GameNormal
@@ -81,6 +100,31 @@ qvectorFromList :: [Float] -> Maybe QVector
 qvectorFromList arg = case arg of
     [x, y, z] -> Just $ QVector (x, y, z)
     _          -> Nothing
+
+
+protocolVersionMaps :: [(Word32, ProtocolVersion, String)]
+protocolVersionMaps = [
+    (3504, ProtocolDarkplaces7, "DP7"),
+	(3503, ProtocolDarkplaces6, "DP6"),
+    (3502, ProtocolDarkplaces5, "DP5"),
+	(3501, ProtocolDarkplaces4, "DP4"),
+	(3500, ProtocolDarkplaces3, "DP3"),
+	(97, ProtocolDarkplaces2, "DP2"),
+	(96, ProtocolDarkplaces1, "DP1"),
+	(15, ProtocolQuakeDP, "QUAKEDP"),
+	(15, ProtocolQuake, "QUAKE"),
+	(28, ProtocolQuakeWorld, "QW"),
+	(250, ProtocolNehahraMovie, "NEHAHRAMOVIE"),
+	(10000, ProtocolNehahraBJP, "NEHAHRABJP"),
+	(10001, ProtocolNehahraBJP2, "NEHAHRABJP2"),
+	(10002, ProtocolNehahraBJP3, "NEHAHRABJP3")]
+ 
+
+-- get ProtocolVersion by Long Int
+protocolVersionFromNum :: (Integral a) => a -> Maybe ProtocolVersion
+protocolVersionFromNum key = SM.lookup (fromIntegral key) map_table
+  where
+    map_table = SM.fromList $ map (\(x, y, _) -> (x, y)) protocolVersionMaps
 
 
 clientStatsMap :: [(Word8, ClientStatsEnum)]

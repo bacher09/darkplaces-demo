@@ -4,7 +4,6 @@ import qualified Data.ByteString.Lazy as L
 import Prelude hiding (getLine)
 import Data.Binary.Get
 import Data.Binary.IEEE754
-import Data.Word
 import Data.Int
 import DarkPlaces.Types
 

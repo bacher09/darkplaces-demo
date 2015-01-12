@@ -2,7 +2,6 @@ module DarkPlaces.Demo (
     getDemoMessage,
     getDemoMessages
 ) where
-import Control.Monad
 import Control.Applicative
 import qualified Data.ByteString.Lazy as L
 import Data.Binary.Get
