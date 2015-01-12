@@ -27,7 +27,7 @@ import DarkPlaces.Binary
 
 data DPServerPacket = DPNop
                     | DPDisconnect
-                    | DPUpdateStat Word8 Word32 -- Should be signed ?
+                    | DPUpdateStat (Either Word8 ClientStatsEnum) Int
                     | DPVersion (Maybe ProtocolVersion)
                     | DPSetView Word16
                     | DPSound
@@ -184,7 +184,10 @@ getDisconnect :: ServerPacketParser
 getDisconnect = return DPDisconnect
 
 getUpdateStats :: ServerPacketParser
-getUpdateStats = DPUpdateStat <$> getWord8 <*> getWord32le
+getUpdateStats = do
+    i <- getWord8
+    let stats = maybe (Left i) Right $ statsFromNum i
+    DPUpdateStat stats . fromIntegral <$> getInt32le
 
 getVersion :: ServerPacketParser
 getVersion = DPVersion . protocolVersionFromNum <$> getWord32le
