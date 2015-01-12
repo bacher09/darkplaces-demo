@@ -25,6 +25,7 @@ import Control.Monad.Trans.Class
 import Data.Bits
 import DarkPlaces.ProtocolConstants
 import DarkPlaces.Types
+import DarkPlaces.Binary
 
 
 
@@ -323,10 +324,7 @@ parseClientData proto mode = do
     neharaFamily = [(ProtocolNehahraMovie)..(ProtocolNehahraBJP3)]
     darkplacesUpto4 = [(ProtocolDarkplaces1)..(ProtocolDarkplaces4)]
     hipnotic_demos = quakes ++ neharaFamily ++ [(ProtocolDarkplaces1)..(ProtocolDarkplaces5)]
-    getInt8asInt = (fromIntegral :: Int8 -> Int) <$> getInt8
     getWord16as32 = (fromIntegral :: Word16 -> Word32) <$> getWord16le
-    getInt16asInt = (fromIntegral :: Int16 -> Int) <$> getInt16le
-    getWord16asInt = (fromIntegral :: Word16 -> Int) <$> getWord16le
     getWord8as32 = (fromIntegral :: Word8 -> Word32) <$> getWord8
     toStats num key = maybeToList $ (\n -> (key, fromIntegral n)) <$> num
     statsVal key n = [(key, n)]
@@ -454,34 +452,3 @@ parseDownloadData = do
 --TODO: need check protocol for QVector
 parseSpawnStaticSound2 :: ServerPacketParser
 parseSpawnStaticSound2 = DPSpawnStaticSound2 <$> getQVector <*> getWord16le <*> getWord8 <*> getWord8
-
-
-getStringList :: Get [L.ByteString]
-getStringList = do
-    str <- getLazyByteStringNul
-    if L.null str
-        then return []
-        else (str :) <$> getStringList
-
-
-getInt8 :: Get Int8
-getInt8 = fromIntegral <$> getWord8
-
-getWord8asInt = (fromIntegral :: Word8 -> Int) <$> getWord8
-
-getInt16le :: Get Int16
-getInt16le = fromIntegral <$> getWord16le
-
-getInt32le :: Get Int32
-getInt32le = fromIntegral <$> getWord32le
-
-getAngle8i :: Get Float
-getAngle8i = (360.0 / 256.0 *) . fromIntegral <$> getInt8
-
-
-getAngle16i :: Get Float
-getAngle16i = (360.0 / 65536.0 *) . fromIntegral <$> getInt16le
-
-
-getCord16i :: Get Float
-getCord16i = fromIntegral <$> getInt16le

@@ -3,14 +3,10 @@ module DarkPlaces.Types (
     ClientStatsEnum(..),
     ClientStatsList(..),
     GameMode(..),
-    getQVector,
     consQVector,
     qvectorFromList
 ) where
 
-import Control.Applicative
-import Data.Binary.Get
-import Data.Binary.IEEE754
 
 newtype QVector = QVector (Float, Float, Float) deriving (Show, Eq, Ord)
 
@@ -76,10 +72,6 @@ data GameMode = GameNormal
 
 consQVector :: Float -> Float -> Float -> QVector
 consQVector x y z = QVector (x, y, z)
-
-getQVector :: Get QVector
-getQVector = consQVector <$> getFloat32le <*> getFloat32le <*> getFloat32le
-
 
 qvectorFromList :: [Float] -> Maybe QVector
 qvectorFromList arg = case arg of

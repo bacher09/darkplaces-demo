@@ -1,22 +1,13 @@
 module DarkPlaces.Demo (
     getDemoMessage,
-    getDemoMessages,
-    getLine
+    getDemoMessages
 ) where
 import Control.Monad
 import Control.Applicative
 import qualified Data.ByteString.Lazy as L
 import Data.Binary.Get
-import Prelude hiding (getLine)
 import DarkPlaces.Types
-
-
-getLine :: Get L.ByteString
-getLine = do
-    b <- getWord8
-    if b == 10  -- 10 is '\n'
-        then return $ L.singleton b
-        else L.cons' b <$> getLine
+import DarkPlaces.Binary
 
 
 getDemoMessage :: Get (QVector, L.ByteString)
