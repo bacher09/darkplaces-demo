@@ -83,6 +83,7 @@ data DPServerPacket = DPNop
                     | DPHidelmp
                     | DPSkybox -- 37
                     | DPDownloadData Word32 Word16 L.ByteString -- <start> <size> <data> 50
+                    | DPUpdateStatUbyte (Either Word8 ClientStatsEnum) Int
                     | DPSpawnStaticSound2 QVector Word16 Word8 Word8 --  <Vector origin> <Number> <vol> <atten> 59
     deriving(Show, Eq)
 
@@ -217,6 +218,7 @@ getServerPacketParser t = case t of
     31 -> Right $ lift parseFinale
     32 -> Right $ lift parseCDTrack
     50 -> Right $ lift parseDownloadData
+    51 -> Right $ lift parseUpdateStatUbyte
     59 -> Right $ lift parseSpawnStaticSound2
     _ ->  Left t
 
@@ -452,6 +454,13 @@ parseDownloadData = do
     download_data <- getLazyByteString $ fromIntegral size
     return $ DPDownloadData start size download_data
 
+
+parseUpdateStatUbyte :: ServerPacketParser
+parseUpdateStatUbyte = do
+    i <- getWord8
+    let stats = maybe (Left i) Right $ statsFromNum i
+    v <- fromIntegral <$> getWord8
+    return $ DPUpdateStatUbyte stats v
 
 --TODO: need check protocol for QVector
 parseSpawnStaticSound2 :: ServerPacketParser
