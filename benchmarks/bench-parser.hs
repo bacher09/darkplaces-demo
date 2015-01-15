@@ -32,22 +32,22 @@ parseDemo1 file_name = do
 parseDemo2 :: FilePath -> IO [[Either Word8 DPServerPacket]]
 parseDemo2 file_name = do
     file_data <- BL.readFile file_name
-    return $ parseFile $ BL.toChunks $ BL.drop 3 file_data
+    return $ parseFile $ BL.drop 3 file_data
   where
-    parseFile file_chunks = goDemo demoDecoder file_chunks defaultDemoState
-      where
-        demoDecoder = runGetIncremental getDemoMessage
-        goDemo (Fail _ _ msg) _ _ = error msg
-        goDemo (Partial k) (x:xs) s = goDemo (k $ Just x) xs s
-        goDemo (Partial _) [] _ = error "End of input"
-        goDemo (Done left _ (_, msg)) xs s = let (msg', s') = goMessages msg s
-                                             in msg' : if null xs then [] else goDemo demoDecoder (left:xs) s'
-        goMessages msg s = runGet (runStateT parsePackets s) msg
+    parseFile file_chunks = go (messages file_chunks) defaultDemoState
+    messages demo_data = map snd $ rights $ iterDemoMessages demo_data
+    goMessages msg s = runGet (runStateT parsePackets s) msg
+    go (x:xs) s = let (res, s') = goMessages x s
+                  in res: go xs s'
+
+    go [] _ = []
+
 
 
 packet_stream :: [[Either Word8 DPServerPacket]] -> [DPServerPacket]
 packet_stream msgs = concat $ rights <$> msgs
 
+main :: IO ()
 main = defaultMain [
     bgroup "full" [
         bench "length" $ nfIO $ length . packet_stream <$> parseDemo1 testDemo,
