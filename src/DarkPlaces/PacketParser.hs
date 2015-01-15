@@ -3,7 +3,10 @@ module DarkPlaces.PacketParser (
     ProtocolVersion(..),
     defaultDemoState,
     parsePacket,
-    parsePackets
+    parsePackets,
+    iterPacketsWithState,
+    iterPackets,
+    listPackets
 ) where
 
 import Prelude hiding (sequence)
@@ -14,7 +17,9 @@ import Data.Binary.IEEE754
 import Data.Word
 import Data.Int
 import Data.Maybe
-import qualified Data.ByteString.Lazy as L
+import Data.Either
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString as B
 import Data.Traversable (sequence)
 import Control.Monad.Trans.Writer.Lazy
 import Control.Monad.Trans.State.Lazy
@@ -32,12 +37,12 @@ data DPServerPacket = DPNop
                     | DPSetView Word16
                     | DPSound
                     | DPTime Float
-                    | DPPrint L.ByteString
-                    | DPStuffText L.ByteString 
+                    | DPPrint BL.ByteString
+                    | DPStuffText BL.ByteString 
                     | DPSetAngle SetAngleData
                     | DPServerInfo (Either Word32 ServerInfoData)
-                    | DPLightStyle Word8 L.ByteString
-                    | DPUpdateName Word8 L.ByteString  -- <user number> <user name>
+                    | DPLightStyle Word8 BL.ByteString
+                    | DPUpdateName Word8 BL.ByteString  -- <user number> <user name>
                     | DPUpdateFrags Word8 Int16
                     | DPClientData Word32 ClientDataPacket -- <bits> <client data>
                     | DPStopSound Word16
@@ -54,14 +59,14 @@ data DPServerPacket = DPNop
                     | DPFoundSecret
                     | DPSpawnStaticSound
                     | DPIntermission
-                    | DPFinale L.ByteString
+                    | DPFinale BL.ByteString
                     | DPCDTrack Word8 Word8 -- <cd track> <loop track>
                     | DPSellScreen
                     | DPCutScene
                     | DPShowlmp
                     | DPHidelmp
                     | DPSkybox -- 37
-                    | DPDownloadData Word32 Word16 L.ByteString -- <start> <size> <data> 50
+                    | DPDownloadData Word32 Word16 BL.ByteString -- <start> <size> <data> 50
                     | DPUpdateStatUbyte (Either Word8 ClientStatsEnum) Int
                     | DPSpawnStaticSound2 QVector Word16 Word8 Word8 --  <Vector origin> <Number> <vol> <atten> 59
     deriving(Show, Eq)
@@ -72,9 +77,9 @@ data ServerInfoData = QWServerInfoData
     dpserverProtocol :: ProtocolVersion,
     dpmaxClients :: Word8,
     dpgameType :: Word8,
-    dpsignonMessage :: L.ByteString,
-    dpmodelsPrecached :: [L.ByteString],
-    dpsoundsPrecached :: [L.ByteString]
+    dpsignonMessage :: BL.ByteString,
+    dpmodelsPrecached :: [BL.ByteString],
+    dpsoundsPrecached :: [BL.ByteString]
     } deriving(Show, Eq)
 
 
@@ -103,6 +108,7 @@ data ServerProtocolState = ServerProtocolState {
 
 type ServerPacketParser = Get DPServerPacket
 type ServerProtocolStateM a = StateT ServerProtocolState Get a
+type PacketOrError = Either Word8 DPServerPacket
 
 
 getProtocol :: ServerProtocolStateM ProtocolVersion
@@ -132,11 +138,11 @@ defaultDemoState :: ServerProtocolState
 defaultDemoState = ServerProtocolState {protocol=ProtocolDarkplaces7, gamemode=GameXonotic}
 
 
-parsePacket :: ServerProtocolStateM (Either Word8 DPServerPacket)
+parsePacket :: ServerProtocolStateM PacketOrError
 parsePacket = sequence =<< getServerPacketParser <$> lift getWord8
 
 
-parsePackets :: ServerProtocolStateM [Either Word8 DPServerPacket]
+parsePackets :: ServerProtocolStateM [PacketOrError]
 parsePackets = do
     empty <- lift isEmpty
     if empty
@@ -146,6 +152,39 @@ parsePackets = do
             case either_packet of
                 Right packet -> (Right packet:) <$> parsePackets
                 Left t -> return [Left t]
+
+
+iterPacketsWithState :: BL.ByteString -> ServerProtocolState -> [Either (ByteOffset, String) (PacketOrError, ServerProtocolState)]
+iterPacketsWithState packets_data state = go (decoder state) $ BL.toChunks packets_data
+  where
+    decoder s = runGetIncremental (runStateT parsePacket s)
+    go (Fail _ offset msg) _ = [Left (offset, msg)]
+    go (Partial k) [] = go (k Nothing) []
+    go (Partial k) (x:xs) = go (k $ Just x) xs
+    go (Done left _ (res, s')) xs = Right (res, s') : if end then [] else go (decoder s') xs'
+      where
+        empty = null xs && B.null left
+        end = empty || isLeft res
+        xs' = left:xs
+
+
+iterPackets :: BL.ByteString -> ServerProtocolState -> ([Either (ByteOffset, String) PacketOrError], ServerProtocolState)
+iterPackets packets_data state = convert (iterPacketsWithState packets_data state) state
+  where
+    convert (x:xs) s = case x of
+        Right (p, s') -> let (res, s'') = convert xs s'
+                         in (Right p : res, s'')
+
+        Left (offset, msg) -> ([Left (offset, msg)], s)
+
+    convert [] s = ([], s)
+
+
+listPackets :: BL.ByteString -> ServerProtocolState -> Either (ByteOffset, String) ([PacketOrError], ServerProtocolState)
+listPackets packets_data state = convert $ runGetOrFail (runStateT parsePackets state) packets_data
+  where
+    convert (Left (_, offset, msg)) = Left (offset, msg)
+    convert (Right (_, _, r)) = Right r
 
 
 getServerPacketParser :: Word8 -> Either Word8 (ServerProtocolStateM DPServerPacket)
