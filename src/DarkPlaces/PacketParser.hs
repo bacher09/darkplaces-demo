@@ -1,6 +1,8 @@
 module DarkPlaces.PacketParser (
     DPServerPacket(..),
     ProtocolVersion(..),
+    ServerInfoData(..),
+    PacketOrError(),
     defaultDemoState,
     parsePacket,
     parsePackets,
@@ -154,7 +156,7 @@ parsePackets = do
                 Left t -> return [Left t]
 
 
-iterPacketsWithState :: BL.ByteString -> ServerProtocolState -> [Either (ByteOffset, String) (PacketOrError, ServerProtocolState)]
+iterPacketsWithState :: BL.ByteString -> ServerProtocolState -> [Either ErrorInfo (PacketOrError, ServerProtocolState)]
 iterPacketsWithState packets_data state = go (decoder state) $ BL.toChunks packets_data
   where
     decoder s = runGetIncremental (runStateT parsePacket s)
@@ -168,7 +170,7 @@ iterPacketsWithState packets_data state = go (decoder state) $ BL.toChunks packe
         xs' = left:xs
 
 
-iterPackets :: BL.ByteString -> ServerProtocolState -> ([Either (ByteOffset, String) PacketOrError], ServerProtocolState)
+iterPackets :: BL.ByteString -> ServerProtocolState -> ([Either ErrorInfo PacketOrError], ServerProtocolState)
 iterPackets packets_data state = convert (iterPacketsWithState packets_data state) state
   where
     convert (x:xs) s = case x of
@@ -180,7 +182,7 @@ iterPackets packets_data state = convert (iterPacketsWithState packets_data stat
     convert [] s = ([], s)
 
 
-listPackets :: BL.ByteString -> ServerProtocolState -> Either (ByteOffset, String) ([PacketOrError], ServerProtocolState)
+listPackets :: BL.ByteString -> ServerProtocolState -> Either ErrorInfo ([PacketOrError], ServerProtocolState)
 listPackets packets_data state = convert $ runGetOrFail (runStateT parsePackets state) packets_data
   where
     convert (Left (_, offset, msg)) = Left (offset, msg)
