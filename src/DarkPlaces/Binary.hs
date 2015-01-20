@@ -8,6 +8,8 @@ import Data.Int
 import DarkPlaces.Types
 
 
+type ErrorInfo = (ByteOffset, String)
+
 maxTrackLen :: Int64
 maxTrackLen = 8
 
@@ -82,12 +84,12 @@ getLineAndRemaining = getLine >>= \l -> bytesRead >>= \b -> return (l, b)
 getLineLAndRemaining :: Int64 -> Get (BL.ByteString, Int64)
 getLineLAndRemaining n = getLineLimited n >>= \l -> bytesRead >>= \b -> return (l, b)
 
-splitAtTrack :: BL.ByteString -> Either (ByteOffset, String) (BL.ByteString, BL.ByteString)
+splitAtTrack :: BL.ByteString -> Either ErrorInfo (BL.ByteString, BL.ByteString)
 splitAtTrack file_data = case either_track of
     Left (_, offset, msg) -> Left (offset, msg)
     Right (_, _, (line, drop_bytes)) -> Right (line, BL.drop drop_bytes file_data)
   where
     either_track = runGetOrFail (getLineLAndRemaining maxTrackLen) file_data
 
-skipTrack :: BL.ByteString -> Either (ByteOffset, String) BL.ByteString
+skipTrack :: BL.ByteString -> Either ErrorInfo BL.ByteString
 skipTrack file_data = snd <$> splitAtTrack file_data
