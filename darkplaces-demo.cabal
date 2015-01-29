@@ -16,10 +16,11 @@ cabal-version:       >=1.10
 library
   exposed-modules:     DarkPlaces.Demo,
                        DarkPlaces.Types,
-                       DarkPlaces.Binary,
                        DarkPlaces.PacketParser,
-                       DarkPlaces.DemoMetadata,
-                       DarkPlaces.ProtocolConstants
+                       DarkPlaces.DemoMetadata
+
+  other-modules:       DarkPlaces.ProtocolConstants,
+                       DarkPlaces.Binary
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.7 && <4.8,
