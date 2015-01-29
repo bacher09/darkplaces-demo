@@ -2,7 +2,8 @@
 module DarkPlaces.DemoMetadata (
     DemoMetadata(..),
     MetadataList,
-    getMetadata
+    getMetadata,
+    getMapname
 ) where
 import Data.Maybe
 import Control.Applicative
@@ -110,3 +111,17 @@ getMetadata file_data = go (demoFilePackets file_data) timeInit
     go ((Right (Left _)):xs) !s = go xs s
     go [] s = Right <$> timeMetadata s
     addSimpleMetadata x s = Right <$> (detectMapName x ++ detectCurlDownload x ++ (detectDemoMessage x $ timeValue s))
+
+
+getMapname :: BL.ByteString -> Either ErrorInfo (Maybe String)
+getMapname file_data = go (demoFilePackets file_data)
+  where
+    go ((Left x):_) = Left x
+    go ((Right (Right x)):xs) = if not (null mapList) then Right $ maybeMap mapList else go xs
+      where
+        mapList = detectMapName x
+        maybeMap [MapName m] = Just m
+        maybeMap _ = Nothing
+
+    go ((Right (Left _)):xs) = go xs
+    go [] = Right Nothing
