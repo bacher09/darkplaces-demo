@@ -46,7 +46,8 @@ executable demoinfo
                        optparse-applicative >= 0.10 && < 0.12,
                        directory >= 1.2,
                        mtl >= 2.1 && < 2.3,
-                       darkplaces-demo
+                       darkplaces-demo,
+                       darkplaces-text
 
   ghc-options:         -O2 -Wall -fno-warn-name-shadowing
   ghc-prof-options:    -prof -auto-all -fprof-auto -caf-all

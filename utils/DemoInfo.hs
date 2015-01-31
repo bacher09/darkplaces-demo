@@ -1,19 +1,35 @@
 module Main where
 import Options.Applicative
 import DarkPlaces.DemoMetadata
+import DarkPlaces.Text
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy.Char8 as BLC
 import System.Directory (doesFileExist)
 import System.Exit
 import Control.Monad.Error
 import Text.Printf
+import Data.Either
+import Data.Fixed (mod')
 
 data CommandArgs = CommandArgs {
     onlyMapname :: Bool,
     filename :: String
 } deriving(Show, Eq)
 
-type MaybeError = ErrorT String IO
 
+data ResourceDownload = ResourceDownload {
+    as :: String,
+    for :: String,
+    url :: String
+} deriving (Show, Eq)
+
+data FileMetadata = FileMetadata {
+    mapName :: String,
+    demoTime :: Float,
+    downloads :: [ResourceDownload]
+} deriving (Show, Eq)
+
+type MaybeError = ErrorT String IO
 
 argsParser :: Parser CommandArgs
 argsParser = CommandArgs 
@@ -25,6 +41,16 @@ argsParser = CommandArgs
         metavar "FILE"
         <> help "Input demo file")
 
+
+printMessages :: MetadataList -> IO ()
+printMessages metadata =  putStrLn "Messages:" >> (mapM_ print $ filter pred metadata)
+  where
+    pred (DemoMessage _ _) = True
+    pred _ = False
+    print (DemoMessage _ m) = putStrUtf $ parseDPText m
+    print _ = return ()
+
+
 openFile :: CommandArgs -> MaybeError BL.ByteString
 openFile args = do
     let file = filename args
@@ -32,6 +58,45 @@ openFile args = do
     if exist
         then liftIO $ BL.readFile file
         else throwError $ printf "File \"%s\" does not exists\n" file
+
+
+formatTime :: Float -> String
+formatTime d
+    | d <= 60 = s_repr
+    | d <= (60 * 60) =  printf "%s %s" m_repr s_repr
+    | otherwise = printf "%s %s %s" h_repr m_repr s_repr
+  where
+    s = d `mod'` 60 :: Float
+    m = (truncate $ d / 60) `rem` 60 :: Int
+    h = (truncate $ d / (60 * 60)) `rem` 24 :: Int
+    s_repr = choose "second" "seconds" s
+    m_repr = choose "minute" "minutes" m
+    h_repr = choose "hour" "hours" h
+    choose s1 s2 v
+        | v == 1 = show v ++ " " ++ s1
+        | otherwise = show v ++ " " ++ s2
+
+
+formatMetadata :: MetadataList -> MaybeError ()
+formatMetadata metadata = do
+    let meta = foldMetadata metadata initState
+    liftIO $ putStrLn $ printf "Map:      %s" $ mapName meta
+    liftIO $ putStrLn $ printf "Time:     %s" $ formatTime $ demoTime meta
+    liftIO $ printDownloads meta
+    liftIO $ printMessages metadata
+    return ()
+  where
+    initState = FileMetadata "" 0 []
+    foldMetadata ((MapName m):xs) ms = foldMetadata xs $ ms {mapName=m}
+    foldMetadata ((DemoTime t):xs) ms = foldMetadata xs $ ms {demoTime=t}
+    foldMetadata ((CurlDownload as for url):xs) ms = foldMetadata xs ms'
+      where
+        ms' = ms {downloads=(ResourceDownload (BLC.unpack as) (BLC.unpack for) (BLC.unpack url)): downloads ms}
+    foldMetadata (_:xs) ms = foldMetadata xs ms
+    foldMetadata [] ms = ms {downloads= reverse $ downloads ms}
+    printDownloads meta = mapM_ printDownload $ downloads meta
+      where
+        printDownload d = putStrLn $ printf "Download: %s -- as %s" (url d) (as d)
 
 
 processDemo :: CommandArgs -> MaybeError ()
@@ -44,14 +109,18 @@ processDemo args = do
                 (Right (Just m)) -> liftIO $ putStrLn $ printf "Map: %s" m
                 (Right Nothing) -> liftIO $ putStrLn "No map information in demo file"
                 (Left _) -> throwError "Error during parsing file"
-        else return ()
+        else do
+            let (errors, metadata) = partitionEithers $ getMetadata file_data
+            if null errors
+                then formatMetadata metadata
+                else throwError "Error during parsing file"
 
 
 demoInfo :: CommandArgs -> IO ()
 demoInfo args = do
     r <- runErrorT $ processDemo args
     case r of
-        Right _ -> print args
+        Right _ -> exitSuccess
         Left e -> putStrLn e >> exitFailure
 
 
