@@ -13,7 +13,10 @@ cabal-version:       >=1.10
 copyright:           (c) Slava Bacherikov 2015
 stability:           alpha
 synopsis:            Utility and parser for DarkPlaces demo files
--- description:         
+description:         
+
+  Curently this package supports only reading some sorts of
+  info from darkplaces demo file.
 
 library
   exposed-modules:     DarkPlaces.Demo,
