@@ -6,7 +6,6 @@ import qualified Data.ByteString.Lazy as BL
 import Control.Monad.Trans.State.Lazy
 import DarkPlaces.PacketParser
 import DarkPlaces.Demo
-import DarkPlaces.Binary
 import Data.Word
 import Data.Binary.Get
 import Data.Either
@@ -21,7 +20,7 @@ parseDemo1 file_name = do
     file_data <- BL.readFile file_name
     return $ parseFile file_data
   where
-    msgs input = map snd $ runGet (getLine >> getDemoMessages) input
+    msgs input = map snd $ runGet getDemoMessages (BL.drop 3 input)
     parseMsg x s = runGet (runStateT parsePackets s) x
     parseData (x:xs) s = let (xr, s') = parseMsg x s
                              in xr : parseData xs s'
