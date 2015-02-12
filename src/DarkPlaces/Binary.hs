@@ -8,8 +8,6 @@ import Data.Int
 import DarkPlaces.Types
 
 
-type ErrorInfo = (ByteOffset, String)
-
 maxTrackLen :: Int64
 maxTrackLen = 8
 

@@ -11,8 +11,8 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BLC
 import Text.Regex.TDFA
 import DarkPlaces.PacketParser
-import DarkPlaces.Binary (ErrorInfo)
 import DarkPlaces.Demo (demoFilePackets)
+import DarkPlaces.Types (ErrorInfo)
 
 
 data DemoMetadata = MapName String

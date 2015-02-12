@@ -4,6 +4,7 @@ module DarkPlaces.Types (
     ClientStatsList,
     ProtocolVersion(..),
     GameMode(..),
+    ErrorInfo,
     consQVector,
     qvectorFromList,
     protocolVersionFromNum,
@@ -12,9 +13,13 @@ module DarkPlaces.Types (
 
 import qualified Data.Map.Strict as SM
 import Data.Word
+import Data.Binary.Get
 
 
 newtype QVector = QVector (Float, Float, Float) deriving (Show, Eq, Ord)
+
+
+type ErrorInfo = (ByteOffset, String)
 
 
 data ClientStatsEnum = HealthStat
