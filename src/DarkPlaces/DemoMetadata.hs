@@ -18,7 +18,7 @@ import DarkPlaces.Demo (demoFilePackets)
 data DemoMetadata = MapName String
                   | DemoTime Float
                   | DemoMessage Float BL.ByteString
-                  | CurlDownload BL.ByteString BL.ByteString BL.ByteString
+                  | CurlDownload BL.ByteString BL.ByteString BL.ByteString -- fields: as for url
     deriving(Show, Eq)
 
 
