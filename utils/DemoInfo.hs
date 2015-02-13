@@ -10,9 +10,15 @@ import Control.Monad.Error
 import Text.Printf
 import Data.Either
 import Data.Fixed (mod')
+import Control.Exception (catch)
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Control.Concurrent.Async
+import Data.String
 
 data CommandArgs = CommandArgs {
     onlyMapname :: Bool,
+    checkUrls :: Bool,
     filename :: String
 } deriving(Show, Eq)
 
@@ -37,6 +43,10 @@ argsParser = CommandArgs
         ( long "map"
         <> short 'm'
         <> help "Print only map name")
+    <*> switch
+        ( long "urls"
+        <> short 'u'
+        <> help "Check download urls")
     <*> argument str (
         metavar "FILE"
         <> help "Input demo file")
@@ -77,12 +87,27 @@ formatTime d
         | otherwise = show v ++ " " ++ s2
 
 
-formatMetadata :: MetadataList -> MaybeError ()
-formatMetadata metadata = do
+checkUrl :: String -> Manager -> IO Bool
+checkUrl url m = catch urlResponse (\(StatusCodeException _ _ _) -> return False)
+  where
+    redir_count = 10
+    headRequest url = do
+        r <- parseUrl url
+        return $ r {method=fromString "HEAD", redirectCount=redir_count}
+
+    urlResponse = do
+        req <- headRequest url
+        _ <- httpNoBody req m -- get response
+        return True
+
+
+formatMetadata :: MetadataList -> Bool -> MaybeError ()
+formatMetadata metadata c_urls = do
     let meta = foldMetadata metadata initState
     liftIO $ putStrLn $ printf "Map:      %s" $ mapName meta
     liftIO $ putStrLn $ printf "Time:     %s" $ formatTime $ demoTime meta
-    liftIO $ printDownloads meta
+    let printUrls = if c_urls then printDownloadsWithCheck else printDownloads
+    liftIO $ printUrls meta
     liftIO $ printMessages metadata
     return ()
   where
@@ -97,6 +122,16 @@ formatMetadata metadata = do
     printDownloads meta = mapM_ printDownload $ downloads meta
       where
         printDownload d = putStrLn $ printf "Download: %s -- as %s" (url d) (as d)
+    printDownloadsWithCheck meta = do
+        m <- newManager tlsManagerSettings
+        down <- forM (downloads meta) $ \d -> do
+            aok <- async $ checkUrl (url d) m
+            return (d, aok)
+
+        forM_ down $ \(d, aok) -> do
+            ok <- wait aok
+            let ok_str = if ok then "OK" else "BROKEN"
+            putStrLn $ printf "Download: %s -- as %s is %s" (url d) (as d) ok_str
 
 
 processDemo :: CommandArgs -> MaybeError ()
@@ -112,7 +147,7 @@ processDemo args = do
         else do
             let (errors, metadata) = partitionEithers $ getMetadata file_data
             if null errors
-                then formatMetadata metadata
+                then formatMetadata metadata $ checkUrls args
                 else throwError "Error during parsing file"
 
 

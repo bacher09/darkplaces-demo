@@ -51,6 +51,9 @@ executable demoinfo
                        optparse-applicative >= 0.10 && < 0.12,
                        directory >= 1.2,
                        mtl >= 2.1 && < 2.3,
+                       http-client >= 0.4,
+                       http-client-tls,
+                       async >= 2.0,
                        darkplaces-demo,
                        darkplaces-text
 
