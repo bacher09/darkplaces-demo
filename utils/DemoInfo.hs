@@ -94,7 +94,7 @@ formatTime d
 
 
 checkUrl :: String -> Manager -> IO Bool
-checkUrl url m = catch urlResponse (\(StatusCodeException _ _ _) -> return False)
+checkUrl url m = catch urlResponse exceptionHandler
   where
     redir_count = 10
     headRequest url = do
@@ -105,6 +105,9 @@ checkUrl url m = catch urlResponse (\(StatusCodeException _ _ _) -> return False
         req <- headRequest url
         _ <- httpNoBody req m -- get response
         return True
+
+    exceptionHandler :: HttpException -> IO Bool
+    exceptionHandler _ = return False
 
 
 formatMetadata :: MetadataList -> CommandArgs -> MaybeError ()
