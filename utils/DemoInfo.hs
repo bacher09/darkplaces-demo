@@ -109,16 +109,16 @@ checkUrl url m = catch urlResponse (\(StatusCodeException _ _ _) -> return False
 
 formatMetadata :: MetadataList -> CommandArgs -> MaybeError ()
 formatMetadata metadata args = do
-    let meta = foldMetadata metadata initState
     liftIO $ putStrLn $ printf "Map:      %s" $ mapName meta
     liftIO $ putStrLn $ printf "Time:     %s" $ formatTime $ demoTime meta
-    let printUrls = if check_urls then printDownloadsWithCheck else printDownloads
     liftIO $ printUrls meta
     liftIO $ printMessages colorful metadata
     return ()
   where
+    meta = foldMetadata metadata initState
     check_urls = checkUrls args
     colorful = colorsOutput args
+    printUrls = if check_urls then printDownloadsWithCheck colorful else printDownloads
     initState = FileMetadata "" 0 []
     foldMetadata ((MapName m):xs) ms = foldMetadata xs $ ms {mapName=m}
     foldMetadata ((DemoTime t):xs) ms = foldMetadata xs $ ms {demoTime=t}
@@ -130,7 +130,7 @@ formatMetadata metadata args = do
     printDownloads meta = mapM_ printDownload $ downloads meta
       where
         printDownload d = putStrLn $ printf "Download: %s -- as %s" (url d) (as d)
-    printDownloadsWithCheck meta = do
+    printDownloadsWithCheck col meta = do
         m <- newManager tlsManagerSettings
         down <- forM (downloads meta) $ \d -> do
             aok <- async $ checkUrl (url d) m
@@ -138,8 +138,9 @@ formatMetadata metadata args = do
 
         forM_ down $ \(d, aok) -> do
             ok <- wait aok
-            let ok_str = if ok then "OK" else "BROKEN"
-            putStrLn $ printf "Download: %s -- as %s is %s" (url d) (as d) ok_str
+            let ok_str = fromString $ if ok then "^2OK" else "^1BROKEN"
+            putStr $ printf "Download: %s -- as %s is " (url d) (as d)
+            printDPText col ok_str >> putStrLn ""
 
 
 processDemo :: CommandArgs -> MaybeError ()
