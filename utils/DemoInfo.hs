@@ -16,9 +16,11 @@ import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Control.Concurrent.Async
 import Data.String
 
+
 data CommandArgs = CommandArgs {
     onlyMapname :: Bool,
     checkUrls :: Bool,
+    colorsOutput :: Bool,
     filename :: String
 } deriving(Show, Eq)
 
@@ -47,17 +49,21 @@ argsParser = CommandArgs
         ( long "urls"
         <> short 'u'
         <> help "Check download urls")
+    <*> switch
+        ( long "colors"
+        <> short 'c'
+        <> help "Output colorful text ever if stdout is not terminal device")
     <*> argument str (
         metavar "FILE"
         <> help "Input demo file")
 
 
-printMessages :: MetadataList -> IO ()
-printMessages metadata =  putStrLn "Messages:" >> (mapM_ print $ filter pred metadata)
+printMessages :: Bool -> MetadataList -> IO ()
+printMessages col metadata =  putStrLn "Messages:" >> (mapM_ print $ filter pred metadata)
   where
     pred (DemoMessage _ _) = True
     pred _ = False
-    print (DemoMessage _ m) = putStrUtf $ parseDPText m
+    print (DemoMessage _ m) = printDPText col m
     print _ = return ()
 
 
@@ -101,16 +107,18 @@ checkUrl url m = catch urlResponse (\(StatusCodeException _ _ _) -> return False
         return True
 
 
-formatMetadata :: MetadataList -> Bool -> MaybeError ()
-formatMetadata metadata c_urls = do
+formatMetadata :: MetadataList -> CommandArgs -> MaybeError ()
+formatMetadata metadata args = do
     let meta = foldMetadata metadata initState
     liftIO $ putStrLn $ printf "Map:      %s" $ mapName meta
     liftIO $ putStrLn $ printf "Time:     %s" $ formatTime $ demoTime meta
-    let printUrls = if c_urls then printDownloadsWithCheck else printDownloads
+    let printUrls = if check_urls then printDownloadsWithCheck else printDownloads
     liftIO $ printUrls meta
-    liftIO $ printMessages metadata
+    liftIO $ printMessages colorful metadata
     return ()
   where
+    check_urls = checkUrls args
+    colorful = colorsOutput args
     initState = FileMetadata "" 0 []
     foldMetadata ((MapName m):xs) ms = foldMetadata xs $ ms {mapName=m}
     foldMetadata ((DemoTime t):xs) ms = foldMetadata xs $ ms {demoTime=t}
@@ -147,7 +155,7 @@ processDemo args = do
         else do
             let (errors, metadata) = partitionEithers $ getMetadata file_data
             if null errors
-                then formatMetadata metadata $ checkUrls args
+                then formatMetadata metadata args
                 else throwError "Error during parsing file"
 
 
