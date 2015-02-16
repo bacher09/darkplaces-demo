@@ -59,7 +59,7 @@ data DPServerPacket = DPNop
                     | DPCenterPrint
                     | DPKilledMonster
                     | DPFoundSecret
-                    | DPSpawnStaticSound
+                    | DPSpawnStaticSound Bool QVector Int Word8 Word8 -- <type> <Vector origin> <Number> <vol> <atten>
                     | DPIntermission
                     | DPFinale BL.ByteString
                     | DPCDTrack Word8 Word8 -- <cd track> <loop track>
@@ -70,7 +70,6 @@ data DPServerPacket = DPNop
                     | DPSkybox -- 37
                     | DPDownloadData Word32 Word16 BL.ByteString -- <start> <size> <data> 50
                     | DPUpdateStatUbyte (Either Word8 ClientStatsEnum) Int
-                    | DPSpawnStaticSound2 QVector Word16 Word8 Word8 --  <Vector origin> <Number> <vol> <atten> 59
                     | DPPointParticles1 Word16 QVector -- <efect num> <start> 62
     deriving(Show, Eq)
 
@@ -211,12 +210,13 @@ getServerPacketParser t = case t of
     17 -> Right $ lift getUpdateColors
     19 -> Right $ lift . getDamage =<< getProtocol
     25 -> Right $ lift getSignonNum
+    29 -> Right $ lift . getSpawnStaticSound False =<< getProtocol
     30 -> Right $ lift getIntermission
     31 -> Right $ lift getFinale
     32 -> Right $ lift getCDTrack
     50 -> Right $ lift getDownloadData
     51 -> Right $ lift getUpdateStatUbyte
-    59 -> Right $ lift . getSpawnStaticSound2 =<< getProtocol
+    59 -> Right $ lift . getSpawnStaticSound True =<< getProtocol
     62 -> Right $ lift . getPointParticles1 =<< getProtocol
     _ ->  Left t
 
@@ -463,9 +463,14 @@ getUpdateStatUbyte = do
     v <- fromIntegral <$> getWord8
     return $ DPUpdateStatUbyte stats v
 
---TODO: need check protocol for QVector
-getSpawnStaticSound2 :: ProtocolVersion -> ServerPacketParser
-getSpawnStaticSound2 p = DPSpawnStaticSound2 <$> getQVector p <*> getWord16le <*> getWord8 <*> getWord8
+
+getSpawnStaticSound :: Bool -> ProtocolVersion -> ServerPacketParser
+getSpawnStaticSound l p = DPSpawnStaticSound is_large <$> getQVector p <*> getSoundNum <*> getWord8 <*> getWord8
+  where
+    is_large = l || p == ProtocolNehahraBJP2
+    getSoundNum = if is_large
+        then fromIntegral <$> getWord16le
+        else fromIntegral <$> getWord8
 
 
 getPointParticles1 :: ProtocolVersion -> ServerPacketParser

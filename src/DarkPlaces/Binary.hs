@@ -18,6 +18,10 @@ getQVector p = consQVector <$> cords <*> cords <*> cords
     cords = getCoord p
 
 
+getQVector32f :: Get QVector
+getQVector32f = consQVector <$> getFloat32le <*> getFloat32le <*> getFloat32le
+
+
 getCoord13i :: Get Float
 getCoord13i = do
     d <- getInt16le

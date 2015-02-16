@@ -17,7 +17,7 @@ import DarkPlaces.PacketParser
 getDemoMessage :: Get (QVector, BL.ByteString)
 getDemoMessage = do
     size <- fromIntegral <$> getWord32le
-    angls <- getQVector
+    angls <- getQVector32f
     msg <- getLazyByteString size
     return (angls, msg)
 
