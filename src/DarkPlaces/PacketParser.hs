@@ -2,6 +2,7 @@ module DarkPlaces.PacketParser (
     DPServerPacket(..),
     ProtocolVersion(..),
     ServerInfoData(..),
+    SoundInfoData(..),
     PacketOrError(),
     defaultDemoState,
     parsePacket,
@@ -37,7 +38,7 @@ data DPServerPacket = DPNop
                     | DPUpdateStat (Either Word8 ClientStatsEnum) Int
                     | DPVersion (Maybe ProtocolVersion)
                     | DPSetView Word16
-                    | DPSound
+                    | DPSound SoundInfoData QVector -- <data> <position>
                     | DPTime Float
                     | DPPrint BL.ByteString
                     | DPStuffText BL.ByteString 
@@ -83,6 +84,13 @@ data ServerInfoData = QWServerInfoData
     dpmodelsPrecached :: [BL.ByteString],
     dpsoundsPrecached :: [BL.ByteString]
     } deriving(Show, Eq)
+
+
+data SoundInfoData = QWSoundData Word8 Float Int Int Int
+                -- <volume> <atten> <ent> <channel> <sound num>, speed always 1.0
+                   | DPSoundData Word8 Float Float Int Int Int
+                -- <volume> <atten> <speed> <ent> <channel> <sound num>
+    deriving(Show, Eq)
 
 
 data SetAngleData = SetAngleOld Float Float Float
@@ -196,7 +204,7 @@ getServerPacketParser t = case t of
     3 -> Right $ lift getUpdateStats
     4 -> Right $ lift getVersion >>= updatesState
     5 -> Right $ lift getSetView
-    -- 6 sound
+    6 -> Right $ lift . getSound False =<< getProtocol
     7 -> Right $ lift getTime
     8 -> Right $ lift getPrint
     9 -> Right $ lift getStuffText
@@ -238,7 +246,59 @@ getVersion = DPVersion . protocolVersionFromNum <$> getWord32le
 getSetView :: ServerPacketParser
 getSetView = DPSetView <$> getWord16le
 
--- parseSound for DPSound
+getSound :: Bool -> ProtocolVersion -> ServerPacketParser
+getSound large proto = DPSound
+    <$> (if proto == ProtocolQuakeWorld
+            then getQWSound
+            else getDPSound)
+    <*> getQVector proto
+  where
+    defaultVolume = 255
+    defaultAttenuation = 1.0
+    getQWSound = do
+        val <- getWord16le
+        volume <- if testBit val 15
+            then getWord8
+            else return defaultVolume
+
+        atten <- if testBit val 14
+            then (/ 64.0) . fromIntegral <$> getWord8
+            else return defaultAttenuation
+
+        sound_num <- fromIntegral <$> getWord8
+        let v = fromIntegral val
+        let (ent, channel) = (v `shiftR` 3 .&. 1023, v .&. 7)
+        return $ QWSoundData volume atten ent channel sound_num
+
+    getDPSound = do
+        field_mask <- getWord8
+        volume <- if testBit field_mask snd_volume_bit
+            then getWord8
+            else return defaultVolume
+
+        atten <- if testBit field_mask snd_attenuation_bit
+            then (/ 64.0) . fromIntegral <$> getWord8
+            else return defaultAttenuation
+
+        speed <- if testBit field_mask snd_speedushort4000_bit
+            then (/ 4000.0) . fromIntegral <$> getWord16le
+            else return 1.0
+
+        (ent, channel) <- if testBit field_mask snd_largeentity_bit
+            then (\e c -> (fromIntegral e, fromIntegral c)) <$> getWord16le <*> getInt8
+            else (\v -> (v `shiftR` 3, v .&. 7)) . fromIntegral <$> getWord16le
+
+        let large_sound_num = large ||
+                              testBit field_mask snd_largesound_bit ||
+                              proto == ProtocolNehahraBJP2 ||
+                              proto == ProtocolNehahraBJP3
+
+        sound_num <- if large_sound_num
+            then fromIntegral <$> getWord16le
+            else fromIntegral <$> getWord8
+
+        return $ DPSoundData volume atten speed ent channel sound_num
+
 
 getTime :: ServerPacketParser
 getTime = DPTime <$> getFloat32le
