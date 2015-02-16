@@ -208,14 +208,14 @@ getServerPacketParser t = case t of
     15 -> Right $ getProtocol >>= \p -> getGameMode >>= lift . getClientData p
     16 -> Right $ lift getStopSound
     17 -> Right $ lift getUpdateColors
-    19 -> Right $ lift getDamage
+    19 -> Right $ lift . getDamage =<< getProtocol
     25 -> Right $ lift getSignonNum
     30 -> Right $ lift getIntermission
     31 -> Right $ lift getFinale
     32 -> Right $ lift getCDTrack
     50 -> Right $ lift getDownloadData
     51 -> Right $ lift getUpdateStatUbyte
-    59 -> Right $ lift getSpawnStaticSound2
+    59 -> Right $ lift . getSpawnStaticSound2 =<< getProtocol
     _ ->  Left t
 
 getNop :: ServerPacketParser
@@ -427,8 +427,8 @@ getUpdateColors :: ServerPacketParser
 getUpdateColors = DPUpdateColors <$> getWord8 <*> getWord8
 
 -- 19
-getDamage :: ServerPacketParser
-getDamage = DPDamage <$> getWord8asInt <*> getWord8asInt <*> getQVector
+getDamage :: ProtocolVersion -> ServerPacketParser
+getDamage p = DPDamage <$> getWord8asInt <*> getWord8asInt <*> getQVector p
 
 
 -- 25
@@ -462,5 +462,5 @@ getUpdateStatUbyte = do
     return $ DPUpdateStatUbyte stats v
 
 --TODO: need check protocol for QVector
-getSpawnStaticSound2 :: ServerPacketParser
-getSpawnStaticSound2 = DPSpawnStaticSound2 <$> getQVector <*> getWord16le <*> getWord8 <*> getWord8
+getSpawnStaticSound2 :: ProtocolVersion -> ServerPacketParser
+getSpawnStaticSound2 p = DPSpawnStaticSound2 <$> getQVector p <*> getWord16le <*> getWord8 <*> getWord8

@@ -12,8 +12,34 @@ maxTrackLen :: Int64
 maxTrackLen = 8
 
 
-getQVector :: Get QVector
-getQVector = consQVector <$> getFloat32le <*> getFloat32le <*> getFloat32le
+getQVector :: ProtocolVersion -> Get QVector
+getQVector p = consQVector <$> cords <*> cords <*> cords
+  where
+    cords = getCoord p
+
+
+getCoord13i :: Get Float
+getCoord13i = do
+    d <- getInt16le
+    return $ (fromIntegral d) * (1.0 / 8.0)
+
+
+getCoord16i :: Get Float
+getCoord16i = fromIntegral <$> getInt16le
+
+
+getCoord32f :: Get Float
+getCoord32f = getFloat32le
+
+
+getCoord :: ProtocolVersion -> Get Float
+getCoord p
+    | p `elem` quakes ++ neharaFamily = getCoord13i
+    | p `elem` [(ProtocolDarkplaces2)..(ProtocolDarkplaces4)] = getCoord16i
+    | otherwise = getCoord32f -- for ProtocolDarkplaces1 and bigger then 4
+  where
+    quakes = [ProtocolQuake, ProtocolQuakeDP, ProtocolQuakeWorld]
+    neharaFamily = [(ProtocolNehahraMovie)..(ProtocolNehahraBJP3)]
 
 
 getLine :: Get BL.ByteString
