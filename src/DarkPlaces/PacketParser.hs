@@ -71,6 +71,7 @@ data DPServerPacket = DPNop
                     | DPDownloadData Word32 Word16 BL.ByteString -- <start> <size> <data> 50
                     | DPUpdateStatUbyte (Either Word8 ClientStatsEnum) Int
                     | DPSpawnStaticSound2 QVector Word16 Word8 Word8 --  <Vector origin> <Number> <vol> <atten> 59
+                    | DPPointParticles1 Word16 QVector -- <efect num> <start> 62
     deriving(Show, Eq)
 
 
@@ -216,6 +217,7 @@ getServerPacketParser t = case t of
     50 -> Right $ lift getDownloadData
     51 -> Right $ lift getUpdateStatUbyte
     59 -> Right $ lift . getSpawnStaticSound2 =<< getProtocol
+    62 -> Right $ lift . getPointParticles1 =<< getProtocol
     _ ->  Left t
 
 getNop :: ServerPacketParser
@@ -464,3 +466,7 @@ getUpdateStatUbyte = do
 --TODO: need check protocol for QVector
 getSpawnStaticSound2 :: ProtocolVersion -> ServerPacketParser
 getSpawnStaticSound2 p = DPSpawnStaticSound2 <$> getQVector p <*> getWord16le <*> getWord8 <*> getWord8
+
+
+getPointParticles1 :: ProtocolVersion -> ServerPacketParser
+getPointParticles1 p = DPPointParticles1 <$> getWord16le <*> getQVector p
