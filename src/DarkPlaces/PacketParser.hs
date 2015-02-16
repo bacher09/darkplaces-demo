@@ -71,7 +71,8 @@ data DPServerPacket = DPNop
                     | DPSkybox -- 37
                     | DPDownloadData Word32 Word16 BL.ByteString -- <start> <size> <data> 50
                     | DPUpdateStatUbyte (Either Word8 ClientStatsEnum) Int
-                    | DPPointParticles Word16 QVector QVector Word16 -- <effect index> <origin> <velocity> <count> 61
+                    | DPTrailParticles Word16 Word16 QVector QVector -- <ent index> <effect index> <start> <end> 60
+                    | DPPointParticles Word16 QVector QVector Word16 -- <effect index> <origin> <velocity> <count>
                     | DPPointParticles1 Word16 QVector -- <efect num> <start>
     deriving(Show, Eq)
 
@@ -226,6 +227,7 @@ getServerPacketParser t = case t of
     50 -> Right $ lift getDownloadData
     51 -> Right $ lift getUpdateStatUbyte
     59 -> Right $ lift . getSpawnStaticSound True =<< getProtocol
+    60 -> Right $ lift . getTrailParticles =<< getProtocol
     61 -> Right $ lift . getPointParticles =<< getProtocol
     62 -> Right $ lift . getPointParticles1 =<< getProtocol
     _ ->  Left t
@@ -533,6 +535,10 @@ getSpawnStaticSound l p = DPSpawnStaticSound is_large <$> getQVector p <*> getSo
     getSoundNum = if is_large
         then fromIntegral <$> getWord16le
         else fromIntegral <$> getWord8
+
+
+getTrailParticles :: ProtocolVersion -> ServerPacketParser
+getTrailParticles p = DPTrailParticles <$> getWord16le <*> getWord16le <*> getQVector p <*> getQVector p
 
 
 getPointParticles :: ProtocolVersion -> ServerPacketParser
